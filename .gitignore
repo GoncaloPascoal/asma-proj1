@@ -22,5 +22,8 @@ build
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 
+# Don't ignore JADE library
+!app/libs/jade.jar
+
 # Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
