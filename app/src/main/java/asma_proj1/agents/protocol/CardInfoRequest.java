@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import asma_proj1.agents.BaseAgent;
 import asma_proj1.card.Card;
+import asma_proj1.utils.StringUtils;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREInitiator;
@@ -26,6 +27,12 @@ public class CardInfoRequest extends AchieveREInitiator {
         return v;
     }
 
+    @Override
+    protected void handleFailure(ACLMessage failure) {
+        StringUtils.logError("Card info request failed:" + failure.getContent());
+    }
+
+    @Override
     protected void handleInform(ACLMessage inform) {
         try {
             Card card = (Card) inform.getContentObject();
