@@ -5,6 +5,8 @@ import java.util.Random;
 public class RandomUtils {
     private static Random random = new Random(System.currentTimeMillis());
 
+    private RandomUtils() {}
+
     public static double normalDistribution() {
         return normalDistribution(0, 1);
     }
