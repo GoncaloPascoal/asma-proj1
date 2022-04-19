@@ -19,5 +19,13 @@ public class BaseAgent extends Agent {
         return capital;
     }
 
+    public boolean changeCapital(int delta) {
+        int newCapital = capital + delta;
+        
+        if (newCapital >= 0) {
+            capital = newCapital;
+        }
 
+        return false;
+    }
 }
