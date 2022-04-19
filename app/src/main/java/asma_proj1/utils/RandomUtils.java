@@ -1,8 +1,9 @@
 package asma_proj1.utils;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
-import java.util.List;
+import java.util.Collection;
 
 public class RandomUtils {
     public static final Random random = new Random(System.currentTimeMillis());
@@ -17,12 +18,12 @@ public class RandomUtils {
         return random.nextGaussian() * stDev + mean;
     }
 
-    public static <T> T choice(List<T> list) {
-        return list.get(random.nextInt(list.size()));
-    }
-
     public static <T> T choice(T[] array) {
         return array[random.nextInt(array.length)];
+    }
+
+    public static <T> Optional<T> choice(Collection<T> collection) {
+        return collection.stream().skip(random.nextInt(collection.size())).findFirst();
     }
 
     public static <T> T weightedChoice(Map<T, Double> weightMap) {

@@ -3,17 +3,16 @@ package asma_proj1.card;
 import java.io.Serializable;
 
 public class Card implements Serializable {
-    private static int nextId = 0;
-
     private final int id;
     private final String name;
     private final Rarity rarity;
+    private final double power;
 
-    public Card(String name, Rarity rarity) {
-        this.id = nextId;
+    public Card(int id, String name, Rarity rarity, double power) {
+        this.id = id;
         this.name = name;
         this.rarity = rarity;
-        ++nextId;
+        this.power = power;
     }
 
     public int getId() {
@@ -27,9 +26,14 @@ public class Card implements Serializable {
     public String getName() {
         return name;
     }
+    
+    public double getPower() {
+        return power;
+    }
 
     @Override
     public String toString() {
-        return "Card [id = " + id + ", name = " + name + ", rarity = " + rarity + "]";
+        return "Card [id = " + id + ", name = " + name +
+            ", rarity = " + rarity + ", power = " + power + "]";
     }    
 }
