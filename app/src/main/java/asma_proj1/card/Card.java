@@ -35,5 +35,5 @@ public class Card implements Serializable {
     public String toString() {
         return "Card [id = " + id + ", name = " + name +
             ", rarity = " + rarity + ", power = " + power + "]";
-    }    
+    }
 }

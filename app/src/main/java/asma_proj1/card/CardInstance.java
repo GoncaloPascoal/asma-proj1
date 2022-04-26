@@ -16,4 +16,9 @@ public class CardInstance {
     public boolean isFoil() {
         return foil;
     }
+
+    @Override
+    public String toString() {
+        return "CardInstance [name = " + card.getName() + ", foil = " + foil + "]";
+    }
 }
