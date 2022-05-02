@@ -3,6 +3,8 @@
  */
 package asma_proj1;
 
+import asma_proj1.card.CardGenerator;
+import asma_proj1.card.CardSet;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -15,11 +17,16 @@ public class App {
         Runtime runtime = Runtime.instance();
         Profile profile = new ProfileImpl();
         
+        profile.setParameter(Profile.SERVICES, "jade.core.messaging.TopicManagementService");
+
         ContainerController mainContainer = runtime.createMainContainer(profile);
 
         try {
             AgentController rma = mainContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
             rma.start();
+
+            AgentController database = mainContainer.createNewAgent("db", "asma_proj1.agents.CardDatabase", null);
+            database.start();
         }
         catch (StaleProxyException e) {
             e.printStackTrace();
