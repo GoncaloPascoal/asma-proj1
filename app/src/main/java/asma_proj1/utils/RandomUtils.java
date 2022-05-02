@@ -10,6 +10,10 @@ public class RandomUtils {
 
     private RandomUtils() {}
 
+    public static int intRangeInclusive(int min, int max) {
+        return min + random.nextInt(max - min + 1);
+    }
+
     public static double normalDistribution() {
         return normalDistribution(0, 1);
     }

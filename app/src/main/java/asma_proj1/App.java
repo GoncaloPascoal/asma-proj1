@@ -3,8 +3,6 @@
  */
 package asma_proj1;
 
-import asma_proj1.card.CardGenerator;
-import asma_proj1.card.CardSet;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;

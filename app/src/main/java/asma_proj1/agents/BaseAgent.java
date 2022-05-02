@@ -7,8 +7,11 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 
-public class BaseAgent extends Agent {
+import asma_proj1.card.CardSet;
+
+public abstract class BaseAgent extends Agent {
     private int capital = 0;
     private AID topic;
 
@@ -23,14 +26,6 @@ public class BaseAgent extends Agent {
         }
 
         addBehaviour(new HandleDatabaseMessages(this));
-
-        System.out.println("Setting up BaseAgent...");
-        System.out.println("BaseAgent " + getAID().getName() + " is ready!");
-    }
-
-    // Put agent clean-up operations here
-    protected void takeDown() {
-        System.out.println("Base agent " + getAID().getName() + " terminating.");
     }
 
     public int getCapital() {
@@ -46,13 +41,18 @@ public class BaseAgent extends Agent {
         
         if (newCapital >= 0) {
             capital = newCapital;
+            return true;
         }
 
         return false;
     }
 
+    protected void handleNewCardSet(CardSet set) {
+        // TODO: make abstract?
+    }
+
     private class HandleDatabaseMessages extends CyclicBehaviour {
-        private BaseAgent agent;
+        private final BaseAgent agent;
 
         public HandleDatabaseMessages(BaseAgent agent) {
             this.agent = agent;
@@ -61,12 +61,18 @@ public class BaseAgent extends Agent {
         @Override
         public void action() {
             ACLMessage message = agent.receive(MessageTemplate.MatchTopic(agent.getTopic()));
+
             if (message != null) {
-                System.out.println(
-                    "Agent " + myAgent.getLocalName() + 
-                    ": Message about topic " + topic.getLocalName() + 
-                    " received. Content is " + message.getContent()
-                );
+                try {
+                    CardSet set = (CardSet) message.getContentObject();
+                    agent.handleNewCardSet(set);
+                }
+                catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                block();
             }
         }
     }

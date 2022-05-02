@@ -1,11 +1,12 @@
 package asma_proj1.card;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import asma_proj1.utils.RandomUtils;
 
-public class CardSet {
+public class CardSet implements Serializable {
     private static final Map<Rarity, Integer> RARITY_COUNT = Map.of(
         Rarity.COMMON, 100,
         Rarity.UNCOMMON, 80,
