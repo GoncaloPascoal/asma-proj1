@@ -3,7 +3,10 @@ package asma_proj1.utils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class RandomUtils {
     public static final Random random = new Random(System.currentTimeMillis());
@@ -45,5 +48,11 @@ public class RandomUtils {
         }
 
         return weightMap.keySet().iterator().next();
+    }
+
+    public static <T> List<T> sample(T[] array, int n) {
+        List<T> l = Arrays.asList(array);
+        Collections.shuffle(l);
+        return l.subList(0, n);
     }
 }

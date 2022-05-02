@@ -39,6 +39,10 @@ public class CardSet implements Serializable {
         }
     }
 
+    public Card[] getCards() {
+        return cards;
+    }
+
     private CardInstance randomCard(Rarity rarity, boolean foil) {
         return new CardInstance(RandomUtils.choice(rarityMap.get(rarity)), foil);
     }
