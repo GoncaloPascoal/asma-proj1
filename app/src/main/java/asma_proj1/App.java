@@ -25,6 +25,9 @@ public class App {
 
             AgentController database = mainContainer.createNewAgent("db", "asma_proj1.agents.CardDatabase", null);
             database.start();
+
+            AgentController collector = mainContainer.createNewAgent("c", "asma_proj1.agents.Collector", null);
+            collector.start();
         }
         catch (StaleProxyException e) {
             e.printStackTrace();

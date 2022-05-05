@@ -1,5 +1,7 @@
 package asma_proj1.agents;
 
+import java.io.IOException;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.ServiceException;
@@ -9,6 +11,7 @@ import jade.lang.acl.ACLMessage;
 
 import asma_proj1.card.CardGenerator;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.StringUtils;
 
 public class CardDatabase extends Agent {
     public static final String TOPIC_NAME = "database";
@@ -31,10 +34,16 @@ public class CardDatabase extends Agent {
 
     public void generateCardSet() {
         CardSet set = new CardSet(generator);
-        // ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-        // message.addReceiver(topic);
-        // message.setContentObject(set);
-        // send(message);
+
+        try {
+            ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+            message.addReceiver(topic);
+            message.setContentObject(set);
+            send(message);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private class GenerateCardSet extends TickerBehaviour {
@@ -47,6 +56,7 @@ public class CardDatabase extends Agent {
         @Override
         protected void onTick() {
             generateCardSet();
+            StringUtils.logAgentMessage(myAgent, "🌱 Generated new card set");
         }
     }
 }

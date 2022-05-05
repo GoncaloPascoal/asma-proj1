@@ -12,6 +12,7 @@ public class CardOwner extends BaseAgent {
 
     @Override
     protected void setup() {
+        super.setup();
         addBehaviour(new ReceiveCapital(this));
     }
 

@@ -1,5 +1,7 @@
 package asma_proj1.utils;
 
+import jade.core.Agent;
+
 public class StringUtils {
     public static final String RED = "\033[1;31m",
         GREEN = "\033[1;32m",
@@ -16,5 +18,9 @@ public class StringUtils {
 
     public static void logError(String str) {
         System.err.println(colorize(str, RED));
+    }
+
+    public static void logAgentMessage(Agent agent, String str) {
+        System.out.println(colorize("Agent '" + agent.getLocalName() + "': ", BLUE) + str);
     }
 }
