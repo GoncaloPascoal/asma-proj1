@@ -1,5 +1,8 @@
 package asma_proj1.agents;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.ServiceException;
@@ -10,10 +13,12 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.StringUtils;
 
 public abstract class BaseAgent extends Agent {
     private int capital = 0;
     private AID topic;
+    private final List<CardSet> cardSets = new ArrayList<>();
 
     protected void setup() {
         try {
@@ -47,9 +52,14 @@ public abstract class BaseAgent extends Agent {
         return false;
     }
 
-    protected void handleNewCardSet(CardSet set) {
-        // TODO: make abstract?
+    protected static String changeCapitalMessage(int delta) {
+        String color = StringUtils.GREEN;
+        if (delta < 0) color = StringUtils.RED;
+
+        return StringUtils.colorize(String.valueOf(Math.abs(delta)), color) + " 💵";
     }
+
+    protected void handleNewCardSet(CardSet set) {}
 
     private class HandleDatabaseMessages extends CyclicBehaviour {
         private final BaseAgent agent;
@@ -66,6 +76,7 @@ public abstract class BaseAgent extends Agent {
                 try {
                     CardSet set = (CardSet) message.getContentObject();
                     agent.handleNewCardSet(set);
+                    cardSets.add(set);
                 }
                 catch (UnreadableException e) {
                     e.printStackTrace();

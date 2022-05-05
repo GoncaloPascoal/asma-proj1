@@ -1,12 +1,16 @@
 package asma_proj1.card;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import asma_proj1.utils.RandomUtils;
 
 public class CardSet implements Serializable {
+    public static final int PACK_PRICE = 25;
+
     private static final Map<Rarity, Integer> RARITY_COUNT = Map.of(
         Rarity.COMMON, 100,
         Rarity.UNCOMMON, 80,
@@ -51,11 +55,12 @@ public class CardSet implements Serializable {
         return randomCard(rarity, false);
     }
 
-    public CardInstance[] openPack() {
-        CardInstance[] packCards = new CardInstance[14];
+    public List<CardInstance> openPack() {
+        ArrayList<CardInstance> pack = new ArrayList<>();
+        pack.ensureCapacity(14);
 
         for (int i = 0; i < 9; ++i) {
-            packCards[i] = randomCard(Rarity.COMMON);
+            pack.set(i, randomCard(Rarity.COMMON));
         }
 
         // If pack has a foil card, it will replace one of the common cards
@@ -64,14 +69,14 @@ public class CardSet implements Serializable {
         if (foil) {
             rarity = RandomUtils.weightedChoice(FOIL_RARITY_MAP);
         }
-        packCards[9] = randomCard(rarity, foil);
+        pack.set(9, randomCard(rarity, foil));
 
         for (int i = 10; i < 13; ++i) {
-            packCards[i] = randomCard(Rarity.UNCOMMON);         
+            pack.set(i, randomCard(Rarity.UNCOMMON));
         }
 
-        packCards[13] = randomCard(Rarity.RARE);
+        pack.set(13, randomCard(Rarity.RARE));
 
-        return packCards;
+        return pack;
     }
 }

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import asma_proj1.card.Card;
+import asma_proj1.card.CardInstance;
 import asma_proj1.card.CardSet;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
@@ -16,7 +17,7 @@ public class Collector extends CardOwner {
     private Set<Card> desiredCards = new HashSet<>();
 
     @Override
-    public void handleNewCardSet(CardSet set) {
+    protected void handleNewCardSet(CardSet set) {
         List<Integer> ids = new ArrayList<>();
 
         int newCards = RandomUtils.intRangeInclusive(0, MAX_NEW_CARDS);
@@ -32,5 +33,20 @@ public class Collector extends CardOwner {
 
         StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
             " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
+    }
+
+    @Override
+    protected void handleNewCardPack(List<CardInstance> pack) {
+        for (CardInstance inst : pack) {
+            Card card = inst.getCard();
+
+            if (desiredCards.contains(card)) {
+                desiredCards.remove(card);
+            }
+            else {
+                // Duplicate, or not interested in this card
+                listCardForTrade(inst);
+            }
+        }
     }
 }
