@@ -54,7 +54,7 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    protected void handleNewCardPack(List<CardInstance> pack) {
+    protected void handleNewCards(List<CardInstance> pack) {
         List<CardInstance> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
 
         for (CardInstance inst : pack) {
@@ -115,10 +115,11 @@ public class Collector extends CardOwner {
                 }
             }
 
-            Iterator<ServiceDescription> it = dfd.getAllServices();
+            Iterator<?> it = dfd.getAllServices();
             while (it.hasNext()) {
                 DFAgentDescription template = new DFAgentDescription();
-                ServiceDescription haveSd = it.next(), wantSd = new ServiceDescription();
+                ServiceDescription haveSd = (ServiceDescription) it.next(),
+                    wantSd = new ServiceDescription();
                 wantSd.setType(CardOwner.DF_WANT_TYPE);
                 wantSd.setName(haveSd.getName());
                 template.addServices(wantSd);

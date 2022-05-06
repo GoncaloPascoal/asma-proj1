@@ -1,7 +1,8 @@
 package asma_proj1.agents;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
@@ -18,7 +19,7 @@ public abstract class CardOwner extends BaseAgent {
     public static final String DF_HAVE_TYPE = "have",
         DF_WANT_TYPE = "want";
 
-    private List<CardInstance> collection = new ArrayList<>();
+    private Map<CardInstance, Integer> collection = new HashMap<>();
     protected final DFAgentDescription dfd = new DFAgentDescription();
 
     @Override
@@ -47,10 +48,13 @@ public abstract class CardOwner extends BaseAgent {
     protected void purchasePack(CardSet set) {
         if (changeCapital(-CardSet.PACK_PRICE)) {
             List<CardInstance> pack = set.openPack();
-            collection.addAll(pack);
+
+            for (CardInstance inst : pack) {
+                collection.compute(inst, (k, v) -> v == null ? 1 : v + 1);
+            }
             StringUtils.logAgentMessage(this, "Purchased a card pack: " + changeCapitalMessage(-CardSet.PACK_PRICE));
 
-            handleNewCardPack(pack);
+            handleNewCards(pack);
         }
     }
 
@@ -85,7 +89,7 @@ public abstract class CardOwner extends BaseAgent {
         updateDfd();
     }
 
-    protected abstract void handleNewCardPack(List<CardInstance> pack);
+    protected abstract void handleNewCards(List<CardInstance> pack);
 
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;
