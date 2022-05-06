@@ -31,19 +31,23 @@ public class StringUtils {
         System.out.println(colorize("Agent '" + agent.getLocalName() + "': ", BLUE) + str);
     }
 
-    public static List<Integer> cardIds(List<?> cards) {
+    public static List<String> cardIds(List<?> cards) {
         if (cards.isEmpty()) return new ArrayList<>();
         Class<?> elemClass = cards.get(0).getClass();
 
         if (elemClass == Card.class) {
             return cards.stream()
-                .mapToInt(c -> ((Card) c).getId())
-                .boxed().collect(Collectors.toList());
+                .map(e -> {
+                    Card c = (Card) e;
+                    return c.getId() + " " + c.getRarity().symbol;
+                }).collect(Collectors.toList());
         }
         else if (elemClass == CardInstance.class) {
             return cards.stream()
-                .mapToInt(c -> ((CardInstance) c).getCard().getId())
-                .boxed().collect(Collectors.toList());
+                .map(e -> {
+                    Card c = ((CardInstance) e).getCard();
+                    return c.getId() + " " + c.getRarity().symbol;
+                }).collect(Collectors.toList());
         }
 
         return new ArrayList<>();

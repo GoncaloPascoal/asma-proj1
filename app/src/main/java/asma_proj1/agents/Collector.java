@@ -40,7 +40,7 @@ public class Collector extends CardOwner {
             List<Card> newDesired = RandomUtils.sample(set.getCards(), newCards);
             desiredCards.addAll(newDesired);
 
-            List<Integer> ids = StringUtils.cardIds(newDesired);
+            List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
                 " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
         }
@@ -74,8 +74,7 @@ public class Collector extends CardOwner {
         }
 
         if (!unwanted.isEmpty()) {
-            StringUtils.logAgentMessage(this, "📜 Listed unwanted cards: " +
-                StringUtils.colorize(StringUtils.cardIds(unwanted).toString(), StringUtils.YELLOW));
+            StringUtils.logAgentMessage(this, "📜 Listed " + unwanted.size() + " unwanted cards.");
         }
     }
 
