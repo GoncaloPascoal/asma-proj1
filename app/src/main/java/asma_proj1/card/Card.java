@@ -1,6 +1,7 @@
 package asma_proj1.card;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Card implements Serializable {
     private final int id;
@@ -35,5 +36,17 @@ public class Card implements Serializable {
     public String toString() {
         return "Card [id = " + id + ", name = " + name +
             ", rarity = " + rarity + ", power = " + power + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Card other = (Card) obj;
+        return id == other.id;
     }
 }

@@ -23,11 +23,17 @@ public class App {
             AgentController rma = mainContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
             rma.start();
 
+            AgentController collector = mainContainer.createNewAgent("c1", "asma_proj1.agents.Collector", null);
+            collector.start();
+
+            AgentController collector2 = mainContainer.createNewAgent("c2", "asma_proj1.agents.Collector", null);
+            collector2.start();
+
+            AgentController collector3 = mainContainer.createNewAgent("c3", "asma_proj1.agents.Collector", null);
+            collector3.start();
+
             AgentController database = mainContainer.createNewAgent("db", "asma_proj1.agents.CardDatabase", null);
             database.start();
-
-            AgentController collector = mainContainer.createNewAgent("c", "asma_proj1.agents.Collector", null);
-            collector.start();
         }
         catch (StaleProxyException e) {
             e.printStackTrace();

@@ -29,11 +29,14 @@ public class CardDatabase extends Agent {
             e.printStackTrace();
         }
 
-        addBehaviour(new GenerateCardSet(this));
+        generateCardSet();
+
+        //addBehaviour(new GenerateCardSet(this));
     }
 
     public void generateCardSet() {
         CardSet set = new CardSet(generator);
+        StringUtils.logAgentMessage(this, "🌱 Generated new card set");
 
         try {
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);
@@ -47,7 +50,7 @@ public class CardDatabase extends Agent {
     }
 
     private class GenerateCardSet extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 120;
+        private static final int INTERVAL_SECONDS = 50;
 
         public GenerateCardSet(CardDatabase database) {
             super(database, INTERVAL_SECONDS * 1000);
@@ -56,7 +59,6 @@ public class CardDatabase extends Agent {
         @Override
         protected void onTick() {
             generateCardSet();
-            StringUtils.logAgentMessage(myAgent, "🌱 Generated new card set");
         }
     }
 }

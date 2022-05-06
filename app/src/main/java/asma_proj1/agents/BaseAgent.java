@@ -18,7 +18,7 @@ import asma_proj1.utils.StringUtils;
 public abstract class BaseAgent extends Agent {
     private int capital = 0;
     private AID topic;
-    private final List<CardSet> cardSets = new ArrayList<>();
+    protected final List<CardSet> cardSets = new ArrayList<>();
 
     protected void setup() {
         try {
@@ -56,7 +56,7 @@ public abstract class BaseAgent extends Agent {
         String color = StringUtils.GREEN;
         if (delta < 0) color = StringUtils.RED;
 
-        return StringUtils.colorize(String.valueOf(Math.abs(delta)), color) + " 💵";
+        return StringUtils.colorize(String.valueOf(delta), color) + " 💵";
     }
 
     protected void handleNewCardSet(CardSet set) {}

@@ -21,4 +21,11 @@ public class CardInstance {
     public String toString() {
         return "CardInstance [name = " + card.getName() + ", foil = " + foil + "]";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || getClass() != obj.getClass()) return false;
+        CardInstance other = (CardInstance) obj;
+        return card == other.card;
+    }
 }
