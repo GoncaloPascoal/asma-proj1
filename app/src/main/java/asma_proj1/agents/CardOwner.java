@@ -74,6 +74,17 @@ public abstract class CardOwner extends BaseAgent {
         updateDfd();
     }
 
+    protected void unlistCards(List<CardInstance> cards, String type) {
+        for (CardInstance inst : cards) {
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType(type);
+            sd.setName(String.valueOf(inst.getCard().getId()));
+            dfd.removeServices(sd);
+        }
+
+        updateDfd();
+    }
+
     protected abstract void handleNewCardPack(List<CardInstance> pack);
 
     private class ReceiveCapital extends TickerBehaviour {

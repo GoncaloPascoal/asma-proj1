@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
@@ -43,9 +44,13 @@ public class Collector extends CardOwner {
             List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
                 " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
-        }
 
-        // TODO: list cards as wanted
+            List<CardInstance> wanted = newDesired.stream()
+                .map(c -> new CardInstance(c, false))
+                .collect(Collectors.toList());
+
+            listCards(wanted, DF_WANT_TYPE);
+        }
     }
 
     @Override
@@ -58,7 +63,6 @@ public class Collector extends CardOwner {
             if (desiredCards.contains(card)) {
                 wanted.add(inst);
                 desiredCards.remove(card);
-                // TODO: remove wanted listings
             }
             else {
                 // Duplicate, or not interested in this card
@@ -66,6 +70,7 @@ public class Collector extends CardOwner {
             }
         }
 
+        unlistCards(wanted, CardOwner.DF_WANT_TYPE);
         listCards(unwanted, CardOwner.DF_HAVE_TYPE);
 
         if (!wanted.isEmpty()) {
