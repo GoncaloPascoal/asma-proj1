@@ -1,14 +1,16 @@
 package asma_proj1.agents.protocols;
 
+import java.io.Serializable;
 import java.util.List;
 
+import asma_proj1.card.Card;
 import asma_proj1.card.CardInstance;
-import jade.util.leap.Serializable;
 
 public class TradeOfferData implements Serializable {
-    public final List<CardInstance> wanted, offered;
+    public List<Card> wanted;
+    public List<CardInstance> offered;
 
-    public TradeOfferData(List<CardInstance> wanted, List<CardInstance> offered) {
+    public TradeOfferData(List<Card> wanted, List<CardInstance> offered) {
         this.wanted = wanted;
         this.offered = offered;
     }

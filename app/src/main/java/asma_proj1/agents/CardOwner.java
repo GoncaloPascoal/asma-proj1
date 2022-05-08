@@ -10,6 +10,9 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+import asma_proj1.agents.protocols.TradeOffer;
+import asma_proj1.agents.protocols.TradeOfferData;
+import asma_proj1.agents.protocols.TradeOfferResponder;
 import asma_proj1.card.CardInstance;
 import asma_proj1.card.CardSet;
 import asma_proj1.utils.RandomUtils;
@@ -19,7 +22,7 @@ public abstract class CardOwner extends BaseAgent {
     public static final String DF_HAVE_TYPE = "have",
         DF_WANT_TYPE = "want";
 
-    private Map<CardInstance, Integer> collection = new HashMap<>();
+    protected final Map<CardInstance, Integer> collection = new HashMap<>();
     protected final DFAgentDescription dfd = new DFAgentDescription();
 
     @Override
@@ -33,6 +36,8 @@ public abstract class CardOwner extends BaseAgent {
         catch (FIPAException e) {
             e.printStackTrace();
         }
+
+        addBehaviour(new TradeOfferResponder(this));
 
         receiveCapital();
         addBehaviour(new ReceiveCapital(this));
@@ -90,6 +95,8 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     protected abstract void handleNewCards(List<CardInstance> pack);
+    public abstract List<CardInstance> selectCardsForTrade(List<CardInstance> offered);
+    public abstract TradeOffer generateTradeOffer(TradeOfferData data);
 
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;
