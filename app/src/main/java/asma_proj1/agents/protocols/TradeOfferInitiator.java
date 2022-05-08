@@ -1,7 +1,7 @@
 package asma_proj1.agents.protocols;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.Vector;
 
 import jade.core.AID;
@@ -9,12 +9,13 @@ import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetInitiator;
 
 import asma_proj1.agents.CardOwner;
+import asma_proj1.utils.StringUtils;
 
 public class TradeOfferInitiator extends ContractNetInitiator {
     private final TradeOfferData data;
-    private final List<AID> agents;
+    private final Collection<AID> agents;
 
-    public TradeOfferInitiator(CardOwner owner, TradeOfferData data, List<AID> agents) {
+    public TradeOfferInitiator(CardOwner owner, TradeOfferData data, Collection<AID> agents) {
         super(owner, null);
         this.data = data;
         this.agents = agents;
@@ -37,5 +38,19 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         }
 
         return msgs;
+    }
+
+    @Override
+    protected void handleAllResponses(Vector responses, Vector acceptances) {
+        int offers = 0;
+
+        for (Object e : responses) {
+            ACLMessage msg = (ACLMessage) e;
+            if (msg.getPerformative() == ACLMessage.PROPOSE) {
+                offers += 1;
+            }
+        }
+
+        StringUtils.logAgentMessage(myAgent, "Received " + offers + " trade offers.");
     }
 }

@@ -12,6 +12,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
+import asma_proj1.agents.protocols.TradeOfferResponder;
 import asma_proj1.card.CardInstance;
 import asma_proj1.card.CardSet;
 import asma_proj1.utils.RandomUtils;
@@ -35,6 +36,8 @@ public abstract class CardOwner extends BaseAgent {
         catch (FIPAException e) {
             e.printStackTrace();
         }
+
+        addBehaviour(new TradeOfferResponder(this));
 
         receiveCapital();
         addBehaviour(new ReceiveCapital(this));

@@ -1,6 +1,7 @@
 package asma_proj1.agents;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
@@ -103,29 +103,38 @@ public class Collector extends CardOwner {
 
         return cardsForTrade;
     }
+
+    private List<CardInstance> unwantedCards() {
+        List<CardInstance> unwanted = new ArrayList<>();
+
+        for (Map.Entry<CardInstance, Integer> entry : collection.entrySet()) {
+            if (!desiredCards.contains(entry.getKey().getCard())) {
+                unwanted.addAll(Collections.nCopies(entry.getValue(), entry.getKey()));
+            }
+            else if (entry.getValue() > 1) {
+                unwanted.addAll(Collections.nCopies(entry.getValue() - 1, entry.getKey()));
+            }
+        }
+
+        return unwanted;
+    }
     
     @Override
     public TradeOffer generateTradeOffer(TradeOfferData data) {
         if (data.offered.isEmpty()) return null;
         List<CardInstance> give = new ArrayList<>(), receive = new ArrayList<>();
-
-        List<CardInstance> canGive = new ArrayList<>();
-        for (Map.Entry<CardInstance, Integer> entry : collection.entrySet()) {
-            if (!desiredCards.contains(entry.getKey().getCard())) {
-                canGive.add(entry.getValue(), entry.getKey());
-            }
-            else if (entry.getValue() > 1) {
-                canGive.add(entry.getValue() - 1, entry.getKey());
-            }
-        }
+        List<CardInstance> canGive = unwantedCards();
 
         while (!data.offered.isEmpty() && !canGive.isEmpty()) {
             CardInstance rInst = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
 
-            Stream<CardInstance> stream = canGive.stream().filter(c -> c.getCard().getRarity() == rInst.getCard().getRarity());
-            if (stream.count() > 0) {
-                stream.skip(RandomUtils.random.nextInt((int) stream.count()));
-                CardInstance gInst = stream.findFirst().get();
+            List<CardInstance> candidates = canGive.stream()
+                .filter(c -> c.getCard().getRarity() == rInst.getCard().getRarity())
+                .collect(Collectors.toList());
+
+            if (candidates.size() > 0) {
+                CardInstance gInst = candidates.get(RandomUtils.random.nextInt(candidates.size()));
+                canGive.remove(gInst);
 
                 receive.add(rInst);
                 give.add(gInst);
@@ -193,7 +202,11 @@ public class Collector extends CardOwner {
             StringUtils.logAgentMessage(myAgent, "📢 Found " + haveAgents.size() +
                 " possible agents to trade with.");
 
-            // TODO: trade protocol
+            List<Card> wanted = new ArrayList<>();
+            wanted.addAll(desiredCards);
+            wanted.removeAll(ownedDesiredCards);
+            List<CardInstance> offered = unwantedCards();
+            addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), haveAgents));
 
             // Purchase a pack of the set with the highest number of desired cards
             if (!cardSets.isEmpty()) {

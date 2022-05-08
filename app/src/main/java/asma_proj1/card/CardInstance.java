@@ -1,6 +1,8 @@
 package asma_proj1.card;
 
-public class CardInstance {
+import java.io.Serializable;
+
+public class CardInstance implements Serializable {
     private Card card;
     private boolean foil;
 
