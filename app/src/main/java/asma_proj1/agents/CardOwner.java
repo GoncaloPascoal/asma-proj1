@@ -3,6 +3,8 @@ package asma_proj1.agents;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
@@ -24,6 +26,7 @@ public abstract class CardOwner extends BaseAgent {
 
     protected final Map<CardInstance, Integer> collection = new HashMap<>();
     protected final DFAgentDescription dfd = new DFAgentDescription();
+    public final Lock collectionLock = new ReentrantLock();
 
     @Override
     protected void setup() {
@@ -52,15 +55,22 @@ public abstract class CardOwner extends BaseAgent {
 
     protected void purchasePack(CardSet set) {
         if (changeCapital(-CardSet.PACK_PRICE)) {
-            List<CardInstance> pack = set.openPack();
-
-            for (CardInstance inst : pack) {
-                collection.compute(inst, (k, v) -> v == null ? 1 : v + 1);
-            }
             StringUtils.logAgentMessage(this, "Purchased a card pack: " + changeCapitalMessage(-CardSet.PACK_PRICE));
 
-            handleNewCards(pack);
+            List<CardInstance> pack = set.openPack();
+            addCardsToCollection(pack);
         }
+    }
+
+    public void addCardsToCollection(List<CardInstance> cards) {
+        for (CardInstance inst : cards) {
+            collection.compute(inst, (k, v) -> v == null ? 1 : v + 1);
+        }
+        handleNewCards(cards);
+    }
+
+    public void removeCardsFromCollection(List<CardInstance> cards) {
+        // TODO: implement
     }
 
     protected void updateDfd() {
@@ -97,6 +107,7 @@ public abstract class CardOwner extends BaseAgent {
     protected abstract void handleNewCards(List<CardInstance> pack);
     public abstract List<CardInstance> selectCardsForTrade(List<CardInstance> offered);
     public abstract TradeOffer generateTradeOffer(TradeOfferData data);
+    public abstract double evaluateTradeOffer(TradeOffer offer);
 
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;

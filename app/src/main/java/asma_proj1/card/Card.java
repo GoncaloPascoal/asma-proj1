@@ -32,6 +32,10 @@ public class Card implements Serializable {
         return power;
     }
 
+    public String idRarity() {
+        return id + " " + rarity.symbol;
+    }
+
     @Override
     public String toString() {
         return "Card [id = " + id + ", name = " + name +

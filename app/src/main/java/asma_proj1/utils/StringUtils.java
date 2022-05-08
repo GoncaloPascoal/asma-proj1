@@ -3,6 +3,7 @@ package asma_proj1.utils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jade.core.Agent;
 
@@ -35,19 +36,17 @@ public class StringUtils {
         if (cards.isEmpty()) return new ArrayList<>();
         Class<?> elemClass = cards.get(0).getClass();
 
+        Stream<Card> cardStream = null;
+
         if (elemClass == Card.class) {
-            return cards.stream()
-                .map(e -> {
-                    Card c = (Card) e;
-                    return c.getId() + " " + c.getRarity().symbol;
-                }).collect(Collectors.toList());
+            cardStream = cards.stream().map(e -> (Card) e);
         }
         else if (elemClass == CardInstance.class) {
-            return cards.stream()
-                .map(e -> {
-                    Card c = ((CardInstance) e).getCard();
-                    return c.getId() + " " + c.getRarity().symbol;
-                }).collect(Collectors.toList());
+            cardStream = cards.stream().map(e -> ((CardInstance) e).getCard());
+        }
+
+        if (cardStream != null) {
+            return cardStream.map(c -> c.idRarity()).collect(Collectors.toList());
         }
 
         return new ArrayList<>();

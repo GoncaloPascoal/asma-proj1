@@ -144,6 +144,11 @@ public class Collector extends CardOwner {
         return new TradeOffer(give, receive);
     }
 
+    @Override
+    public double evaluateTradeOffer(TradeOffer offer) {
+        return 0;
+    }
+
     private class CollectorBehaviour extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 15;
         private final Collector collector;
@@ -199,14 +204,17 @@ public class Collector extends CardOwner {
             }
 
             haveAgents.retainAll(wantAgents);
-            StringUtils.logAgentMessage(myAgent, "📢 Found " + haveAgents.size() +
+
+            if (!haveAgents.isEmpty()) {
+                StringUtils.logAgentMessage(myAgent, "📢 Found " + haveAgents.size() +
                 " possible agents to trade with.");
 
-            List<Card> wanted = new ArrayList<>();
-            wanted.addAll(desiredCards);
-            wanted.removeAll(ownedDesiredCards);
-            List<CardInstance> offered = unwantedCards();
-            addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), haveAgents));
+                List<Card> wanted = new ArrayList<>();
+                wanted.addAll(desiredCards);
+                wanted.removeAll(ownedDesiredCards);
+                List<CardInstance> offered = unwantedCards();
+                addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), haveAgents));
+            }
 
             // Purchase a pack of the set with the highest number of desired cards
             if (!cardSets.isEmpty()) {

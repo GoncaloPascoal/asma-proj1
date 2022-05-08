@@ -6,17 +6,21 @@ import java.util.Vector;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 import asma_proj1.agents.CardOwner;
 import asma_proj1.utils.StringUtils;
 
 public class TradeOfferInitiator extends ContractNetInitiator {
+    private final CardOwner cardOwner;
     private final TradeOfferData data;
     private final Collection<AID> agents;
+    private TradeOffer bestOffer = null;
 
-    public TradeOfferInitiator(CardOwner owner, TradeOfferData data, Collection<AID> agents) {
-        super(owner, null);
+    public TradeOfferInitiator(CardOwner cardOwner, TradeOfferData data, Collection<AID> agents) {
+        super(cardOwner, null);
+        this.cardOwner = cardOwner;
         this.data = data;
         this.agents = agents;
     }
@@ -42,15 +46,43 @@ public class TradeOfferInitiator extends ContractNetInitiator {
 
     @Override
     protected void handleAllResponses(Vector responses, Vector acceptances) {
-        int offers = 0;
+        ACLMessage bestMessage = null;
+        int numOffers = 0;
 
-        for (Object e : responses) {
-            ACLMessage msg = (ACLMessage) e;
+        for (Object obj : responses) {
+            ACLMessage msg = (ACLMessage) obj;
+
             if (msg.getPerformative() == ACLMessage.PROPOSE) {
-                offers += 1;
+                ++numOffers;
+
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                acceptances.add(reply);
+
+                try {
+                    TradeOffer offer = (TradeOffer) msg.getContentObject();
+                    if (bestOffer == null || cardOwner.evaluateTradeOffer(offer) > cardOwner.evaluateTradeOffer(bestOffer)) {
+                        bestMessage = reply;
+                        bestOffer = offer;
+                    }
+                }
+                catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-        StringUtils.logAgentMessage(myAgent, "Received " + offers + " trade offers.");
+        if (numOffers > 0) {
+            StringUtils.logAgentMessage(myAgent, "🔄 Received " + numOffers + " trade offers.");
+
+            bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+            StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer:\n" + bestOffer);
+        }
+    }
+
+    @Override
+    protected void handleInform(ACLMessage inform) {
+        // TODO: remove cards from collection, prevent race conditions
+        cardOwner.addCardsToCollection(bestOffer.give);
     }
 }

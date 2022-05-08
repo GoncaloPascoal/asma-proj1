@@ -53,7 +53,23 @@ public class TradeOfferResponder extends ContractNetResponder {
 
     @Override
     protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        // TODO: remove cards from collection, check if cards still exist
+
+        try {
+            cardOwner.collectionLock.lock();
+            TradeOffer offer = (TradeOffer) propose.getContentObject();
+            cardOwner.addCardsToCollection(offer.receive);
+        }
+        catch (UnreadableException e) {
+            e.printStackTrace();
+            throw new FailureException("Error when performing trade.");
+        }
+        finally {
+            cardOwner.collectionLock.unlock();
+        }
+
+        ACLMessage msg = accept.createReply();
+        msg.setPerformative(ACLMessage.INFORM);
         return msg;
     }
 }
