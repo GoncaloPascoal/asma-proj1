@@ -104,7 +104,7 @@ public abstract class CardOwner extends BaseAgent {
         updateDfd();
     }
 
-    protected abstract void handleNewCards(List<CardInstance> pack);
+    protected abstract void handleNewCards(List<CardInstance> cards);
     public abstract List<CardInstance> selectCardsForTrade(List<CardInstance> offered);
     public abstract TradeOffer generateTradeOffer(TradeOfferData data);
     public abstract double evaluateTradeOffer(TradeOffer offer);

@@ -58,10 +58,10 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    protected void handleNewCards(List<CardInstance> pack) {
+    protected void handleNewCards(List<CardInstance> cards) {
         List<CardInstance> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
 
-        for (CardInstance inst : pack) {
+        for (CardInstance inst : cards) {
             Card card = inst.getCard();
 
             if (desiredCards.contains(card) && !ownedDesiredCards.contains(card)) {
