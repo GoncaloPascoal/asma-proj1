@@ -2,6 +2,8 @@ package asma_proj1.agents.protocols;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import jade.core.AID;
@@ -10,6 +12,7 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 import asma_proj1.agents.CardOwner;
+import asma_proj1.card.CardInstance;
 import asma_proj1.utils.StringUtils;
 
 public class TradeOfferInitiator extends ContractNetInitiator {
@@ -75,14 +78,34 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         if (numOffers > 0) {
             StringUtils.logAgentMessage(myAgent, "🔄 Received " + numOffers + " trade offers.");
 
+            Map<CardInstance, Integer> toRemove = new HashMap<>();
+            for (CardInstance inst : bestOffer.receive) {
+                toRemove.compute(inst, (k, v) -> v == null ? 1 : v + 1);
+            }
+
+            cardOwner.collectionLock.lock();
+
+            // Check if the cards in the offer still exist in our collection
+            Map<CardInstance, Integer> collection = cardOwner.getCollection();
+            for (Map.Entry<CardInstance, Integer> entry : toRemove.entrySet()) {
+                if (collection.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
+                    cardOwner.collectionLock.unlock();
+                    return;
+                }
+            }
+
+            cardOwner.removeCardsFromCollection(bestOffer.receive);
             bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
             StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer:\n" + bestOffer);
+
+            cardOwner.collectionLock.unlock();
         }
     }
 
     @Override
     protected void handleInform(ACLMessage inform) {
-        // TODO: remove cards from collection, prevent race conditions
+        cardOwner.collectionLock.lock();
         cardOwner.addCardsToCollection(bestOffer.give);
+        cardOwner.collectionLock.unlock();
     }
 }

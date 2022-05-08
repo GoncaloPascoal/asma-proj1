@@ -1,8 +1,11 @@
 package asma_proj1.agents;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,6 +13,7 @@ import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import asma_proj1.agents.protocols.TradeOffer;
@@ -46,6 +50,10 @@ public abstract class CardOwner extends BaseAgent {
         addBehaviour(new ReceiveCapital(this));
     }
 
+    public Map<CardInstance, Integer> getCollection() {
+        return Collections.unmodifiableMap(collection);
+    }
+
     protected void receiveCapital() {
         int capital = RandomUtils.intRangeInclusive(50, 100);
         changeCapital(capital);
@@ -70,7 +78,25 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     public void removeCardsFromCollection(List<CardInstance> cards) {
-        // TODO: implement
+        Set<CardInstance> unique = new HashSet<>(cards);
+
+        for (CardInstance inst : cards) {
+            collection.compute(inst, (k, v) -> v == null || v == 1 ? null : v - 1);
+        }
+
+        for (CardInstance inst : unique) {
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType(DF_HAVE_TYPE);
+            sd.setName(String.valueOf(inst.getCard().getId()));
+            dfd.removeServices(sd);
+            
+            if (collection.containsKey(inst)) {
+                sd.addProperties(new Property("count", collection.get(inst)));
+                dfd.addServices(sd);
+            }
+        }
+
+        updateDfd();
     }
 
     protected void updateDfd() {
@@ -87,7 +113,11 @@ public abstract class CardOwner extends BaseAgent {
             ServiceDescription sd = new ServiceDescription();
             sd.setType(type);
             sd.setName(String.valueOf(inst.getCard().getId()));
-            dfd.addServices(sd);
+
+            if (collection.containsKey(inst)) {
+                sd.addProperties(new Property("count", collection.get(inst)));
+                dfd.addServices(sd);
+            }
         }
 
         updateDfd();
