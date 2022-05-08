@@ -54,6 +54,22 @@ public class TradeOfferResponder extends ContractNetResponder {
     @Override
     protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+
+        ACLMessage content = null;
+        try {
+            content = (ACLMessage)accept.getContentObject();
+        }
+        catch (UnreadableException e) {
+            e.printStackTrace();
+        }
+        if (content != null) { // dont know if applicable
+            msg.setContent("Proposal from " + accept.getSender().getLocalName() + ": Accepted");
+        }
         return msg;
+    }
+
+    @Override
+    protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+        System.out.println("Agent '" + reject.getSender().getLocalName() + "' Proposal : Rejected");
     }
 }
