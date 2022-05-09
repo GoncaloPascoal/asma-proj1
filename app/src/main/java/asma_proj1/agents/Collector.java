@@ -27,7 +27,7 @@ import asma_proj1.utils.StringUtils;
 
 public class Collector extends CardOwner {
     private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 2, MAX_NEW_CARDS = 15;
-    private Set<Card> desiredCards = new HashSet<>(), ownedDesiredCards = new HashSet<>();
+    private Set<Card> desiredCards = new HashSet<>(), desiredNotOwned = new HashSet<>();
 
     @Override
     protected void setup() {
@@ -43,6 +43,7 @@ public class Collector extends CardOwner {
         if (newCards > 0) {
             List<Card> newDesired = RandomUtils.sample(set.getCards(), newCards);
             desiredCards.addAll(newDesired);
+            desiredNotOwned.addAll(newDesired);
 
             List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
@@ -63,9 +64,9 @@ public class Collector extends CardOwner {
         for (CardInstance inst : cards) {
             Card card = inst.getCard();
 
-            if (desiredCards.contains(card) && !ownedDesiredCards.contains(card)) {
+            if (desiredNotOwned.contains(card)) {
                 wanted.add(inst);
-                ownedDesiredCards.add(card);
+                desiredNotOwned.remove(card);
             }
             else {
                 // Duplicate, or not interested in this card
@@ -88,19 +89,17 @@ public class Collector extends CardOwner {
 
     @Override
     public List<CardInstance> selectCardsForTrade(List<CardInstance> offered) {
-        Set<Card> relevantCards = new HashSet<>();
-        List<CardInstance> cardsForTrade = new ArrayList<>();
+        Set<CardInstance> cardsForTrade = new HashSet<>();
 
         for (CardInstance inst : offered) {
             Card card = inst.getCard();
 
-            if (desiredCards.contains(card) && !relevantCards.contains(card)) {
-                relevantCards.add(card);
+            if (desiredNotOwned.contains(card)) {
                 cardsForTrade.add(inst);
             }
         }
 
-        return cardsForTrade;
+        return cardsForTrade.stream().collect(Collectors.toList());
     }
 
     private List<CardInstance> unwantedCards() {
@@ -161,40 +160,38 @@ public class Collector extends CardOwner {
         protected void onTick() {
             if (desiredCards.isEmpty()) return; 
 
-            // Look for possible trades
-            Set<AID> agents = new HashSet<>();
-            Set<Card> desiredNotOwned = new HashSet<>(desiredCards);
-            desiredNotOwned.removeAll(ownedDesiredCards);
+            if (!collection.isEmpty()) {
+                // Look for possible trades
+                Set<AID> agents = new HashSet<>();
 
-            for (Card card : desiredNotOwned) {
-                DFAgentDescription template = new DFAgentDescription();
-                ServiceDescription sd = new ServiceDescription();
-                sd.setType(CardOwner.DF_HAVE_TYPE);
-                sd.setName(String.valueOf(card.getId()));
-                template.addServices(sd);
+                for (Card card : desiredNotOwned) {
+                    DFAgentDescription template = new DFAgentDescription();
+                    ServiceDescription sd = new ServiceDescription();
+                    sd.setType(CardOwner.DF_HAVE_TYPE);
+                    sd.setName(String.valueOf(card.getId()));
+                    template.addServices(sd);
 
-                try {
-                    DFAgentDescription[] results = DFService.search(myAgent, template);
-                    for (DFAgentDescription result : results) {
-                        if (result.getName() != getAID()) {
-                            agents.add(result.getName());
+                    try {
+                        DFAgentDescription[] results = DFService.search(myAgent, template);
+                        for (DFAgentDescription result : results) {
+                            if (result.getName() != getAID()) {
+                                agents.add(result.getName());
+                            }
                         }
                     }
+                    catch (FIPAException e) {
+                        e.printStackTrace();
+                    }
                 }
-                catch (FIPAException e) {
-                    e.printStackTrace();
+
+                if (!agents.isEmpty()) {
+                    StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
+                    " possible agents to trade with.");
+
+                    List<Card> wanted = new ArrayList<>(desiredNotOwned);
+                    List<CardInstance> offered = unwantedCards();
+                    addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), agents));
                 }
-            }
-
-            if (!agents.isEmpty()) {
-                StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
-                " possible agents to trade with.");
-
-                List<Card> wanted = new ArrayList<>();
-                wanted.addAll(desiredCards);
-                wanted.removeAll(ownedDesiredCards);
-                List<CardInstance> offered = unwantedCards();
-                addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), agents));
             }
 
             // Purchase a pack of the set with the highest number of desired cards

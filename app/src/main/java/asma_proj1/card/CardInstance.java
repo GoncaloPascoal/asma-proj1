@@ -27,9 +27,10 @@ public class CardInstance implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         CardInstance other = (CardInstance) obj;
-        return card == other.card;
+        return card.equals(other.card);
     }
 
     @Override

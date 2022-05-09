@@ -19,9 +19,9 @@ public class TradeOffer implements Serializable {
         List<String> giveIds = StringUtils.cardIds(give),
             receiveIds = StringUtils.cardIds(receive);
 
-        return "    • " + StringUtils.colorize("GIVE:    ", StringUtils.RED)
+        return "    • " + StringUtils.colorize("OTHER GIVES:    ", StringUtils.GREEN)
             + StringUtils.colorize(giveIds.toString(), StringUtils.YELLOW)
-            + "\n    • " + StringUtils.colorize("RECEIVE: ", StringUtils.GREEN)
+            + "\n    • " + StringUtils.colorize("OTHER RECEIVES: ", StringUtils.RED)
             + StringUtils.colorize(receiveIds.toString(), StringUtils.YELLOW);
     }
 }

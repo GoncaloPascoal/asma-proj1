@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
@@ -87,8 +88,8 @@ public class TradeOfferInitiator extends ContractNetInitiator {
 
             // Check if the cards in the offer still exist in our collection
             Map<CardInstance, Integer> collection = cardOwner.getCollection();
-            for (Map.Entry<CardInstance, Integer> entry : toRemove.entrySet()) {
-                if (collection.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
+            for (CardInstance inst : toRemove.keySet()) {
+                if (collection.getOrDefault(inst, 0) < toRemove.get(inst)) {
                     cardOwner.collectionLock.unlock();
                     return;
                 }
