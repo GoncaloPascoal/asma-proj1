@@ -2,8 +2,6 @@ package asma_proj1.agents.protocols;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Vector;
 
 import jade.core.AID;
@@ -12,7 +10,6 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 import asma_proj1.agents.CardOwner;
-import asma_proj1.card.CardInstance;
 import asma_proj1.utils.StringUtils;
 
 public class TradeOfferInitiator extends ContractNetInitiator {
