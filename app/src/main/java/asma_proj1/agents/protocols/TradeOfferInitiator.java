@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Vector;
 
 import jade.core.AID;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
@@ -32,6 +33,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         for (AID agent : agents) {
             try {
                 cfp = new ACLMessage(ACLMessage.CFP);
+                cfp.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
                 cfp.setContentObject(data);
                 cfp.addReceiver(agent);
                 msgs.add(cfp);

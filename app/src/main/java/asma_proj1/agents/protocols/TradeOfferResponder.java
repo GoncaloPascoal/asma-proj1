@@ -2,10 +2,12 @@ package asma_proj1.agents.protocols;
 
 import java.io.IOException;
 
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
 
@@ -16,16 +18,16 @@ public class TradeOfferResponder extends ContractNetResponder {
     private TradeOfferData data;
 
     public TradeOfferResponder(CardOwner cardOwner) {
-        super(cardOwner, null);
+        super(cardOwner, MessageTemplate.and(
+            MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
+            MessageTemplate.MatchPerformative(ACLMessage.CFP)
+        ));
         this.cardOwner = cardOwner;
     }
 
     @Override
     protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException,
             FailureException, NotUnderstoodException {
-        if (cfp.getPerformative() != ACLMessage.CFP)
-            throw new NotUnderstoodException("Wrong performative.");
-        
         try {
             data = (TradeOfferData) cfp.getContentObject();
         }
