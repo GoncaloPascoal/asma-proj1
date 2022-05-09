@@ -1,15 +1,12 @@
 package asma_proj1.utils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jade.core.Agent;
 
 import asma_proj1.card.Card;
-import asma_proj1.card.CardInstance;
 
 public class StringUtils {
     public static final String RED = "\033[1;31m",
@@ -34,23 +31,7 @@ public class StringUtils {
         System.out.println(colorize("Agent '" + agent.getLocalName() + "': ", BLUE) + str);
     }
 
-    public static List<String> cardIds(Collection<?> cards) {
-        if (cards.isEmpty()) return new ArrayList<>();
-        Class<?> elemClass = cards.stream().findFirst().get().getClass();
-
-        Stream<Card> cardStream = null;
-
-        if (elemClass == Card.class) {
-            cardStream = cards.stream().map(e -> (Card) e);
-        }
-        else if (elemClass == CardInstance.class) {
-            cardStream = cards.stream().map(e -> ((CardInstance) e).getCard());
-        }
-
-        if (cardStream != null) {
-            return cardStream.map(c -> c.idRarity()).collect(Collectors.toList());
-        }
-
-        return new ArrayList<>();
+    public static List<String> cardIds(Collection<Card> cards) {
+        return cards.stream().map(c -> c.idRarity()).collect(Collectors.toList());
     }
 }

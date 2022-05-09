@@ -3,13 +3,13 @@ package asma_proj1.agents.protocols;
 import java.io.Serializable;
 import java.util.List;
 
-import asma_proj1.card.CardInstance;
+import asma_proj1.card.Card;
 import asma_proj1.utils.StringUtils;
 
 public class TradeOffer implements Serializable {
-    public final List<CardInstance> give, receive;
+    public final List<Card> give, receive;
 
-    public TradeOffer(List<CardInstance> give, List<CardInstance> receive) {
+    public TradeOffer(List<Card> give, List<Card> receive) {
         this.give = give;
         this.receive = receive;
     }

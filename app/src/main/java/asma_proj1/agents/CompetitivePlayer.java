@@ -7,7 +7,6 @@ import java.util.TreeSet;
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.card.Card;
-import asma_proj1.card.CardInstance;
 
 public class CompetitivePlayer extends CardOwner {
     private static final int BEST_MAX_SIZE = 100;
@@ -16,10 +15,8 @@ public class CompetitivePlayer extends CardOwner {
     );
 
     @Override
-    protected void handleNewCards(List<CardInstance> cards) {
-        for (CardInstance inst : cards) {
-            Card card = inst.getCard();
-
+    protected void handleNewCards(List<Card> cards) {
+        for (Card card : cards) {
             if (!bestCards.contains(card) && (bestCards.size() < BEST_MAX_SIZE ||
                     card.getPower() > bestCards.first().getPower())) {
                 if (bestCards.size() == BEST_MAX_SIZE) {
@@ -38,7 +35,7 @@ public class CompetitivePlayer extends CardOwner {
     }
 
     @Override
-    public List<CardInstance> selectCardsForTrade(List<CardInstance> offered) {
+    public List<Card> selectCardsForTrade(List<Card> offered) {
         return offered;
     }
 

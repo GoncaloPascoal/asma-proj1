@@ -11,17 +11,10 @@ import asma_proj1.utils.RandomUtils;
 
 public class CardSet implements Serializable {
     public static final int PACK_PRICE = 50, SET_SIZE = 125;
-
     private static final Map<Rarity, Integer> RARITY_COUNT = Map.of(
         Rarity.COMMON, 50,
         Rarity.UNCOMMON, 40,
         Rarity.RARE, 35
-    );
-    private static final double FOIL_CHANCE = 0.2;
-    private static final Map<Rarity, Double> FOIL_RARITY_MAP = Map.of(
-        Rarity.COMMON, 0.7,
-        Rarity.UNCOMMON, 0.2,
-        Rarity.RARE, 0.1
     );
 
     private Card[] cards;
@@ -47,34 +40,20 @@ public class CardSet implements Serializable {
         return cards;
     }
 
-    private CardInstance randomCard(Rarity rarity, boolean foil) {
-        return new CardInstance(RandomUtils.choice(rarityMap.get(rarity)), foil);
+    private Card randomCard(Rarity rarity) {
+        return RandomUtils.choice(rarityMap.get(rarity));
     }
 
-    private CardInstance randomCard(Rarity rarity) {
-        return randomCard(rarity, false);
-    }
-
-    public List<CardInstance> openPack() {
-        ArrayList<CardInstance> pack = new ArrayList<>();
+    public List<Card> openPack() {
+        ArrayList<Card> pack = new ArrayList<>();
         pack.addAll(Collections.nCopies(14, null));
 
-        for (int i = 0; i < 9; ++i) {
+        for (int i = 0; i < 10; ++i) {
             pack.set(i, randomCard(Rarity.COMMON));
         }
-
-        // If pack has a foil card, it will replace one of the common cards
-        boolean foil = RandomUtils.random.nextDouble() <= FOIL_CHANCE;
-        Rarity rarity = Rarity.COMMON;
-        if (foil) {
-            rarity = RandomUtils.weightedChoice(FOIL_RARITY_MAP);
-        }
-        pack.set(9, randomCard(rarity, foil));
-
         for (int i = 10; i < 13; ++i) {
             pack.set(i, randomCard(Rarity.UNCOMMON));
         }
-
         pack.set(13, randomCard(Rarity.RARE));
 
         return pack;

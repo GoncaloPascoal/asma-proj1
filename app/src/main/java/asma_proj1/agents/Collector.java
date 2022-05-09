@@ -22,7 +22,6 @@ import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.agents.protocols.TradeOfferInitiator;
 import asma_proj1.card.Card;
-import asma_proj1.card.CardInstance;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
 import asma_proj1.utils.RandomUtils;
@@ -58,28 +57,22 @@ public class Collector extends CardOwner {
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
                 " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
 
-            List<CardInstance> wanted = newDesired.stream()
-                .map(c -> new CardInstance(c, false))
-                .collect(Collectors.toList());
-
-            listCards(wanted, DF_WANT_TYPE);
+            listCards(newDesired, DF_WANT_TYPE);
         }
     }
 
     @Override
-    protected void handleNewCards(List<CardInstance> cards) {
-        List<CardInstance> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
+    protected void handleNewCards(List<Card> cards) {
+        List<Card> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
 
-        for (CardInstance inst : cards) {
-            Card card = inst.getCard();
-
+        for (Card card : cards) {
             if (desiredNotOwned.contains(card)) {
-                wanted.add(inst);
+                wanted.add(card);
                 desiredNotOwned.remove(card);
             }
             else {
                 // Duplicate, or not interested in this card
-                unwanted.add(inst);
+                unwanted.add(card);
             }
         }
 
@@ -97,25 +90,17 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    public List<CardInstance> selectCardsForTrade(List<CardInstance> offered) {
-        Set<CardInstance> cardsForTrade = new HashSet<>();
-
-        for (CardInstance inst : offered) {
-            Card card = inst.getCard();
-
-            if (desiredNotOwned.contains(card)) {
-                cardsForTrade.add(inst);
-            }
-        }
-
-        return cardsForTrade.stream().collect(Collectors.toList());
+    public List<Card> selectCardsForTrade(List<Card> offered) {
+        Set<Card> unique = new HashSet<>(offered);
+        unique.retainAll(desiredNotOwned);
+        return new ArrayList<>(unique);
     }
 
-    private List<CardInstance> unwantedCards() {
-        List<CardInstance> unwanted = new ArrayList<>();
+    private List<Card> unwantedCards() {
+        List<Card> unwanted = new ArrayList<>();
 
-        for (Map.Entry<CardInstance, Integer> entry : collection.entrySet()) {
-            if (!desiredCards.contains(entry.getKey().getCard())) {
+        for (Map.Entry<Card, Integer> entry : collection.entrySet()) {
+            if (!desiredCards.contains(entry.getKey())) {
                 unwanted.addAll(Collections.nCopies(entry.getValue(), entry.getKey()));
             }
             else if (entry.getValue() > 1) {
@@ -129,28 +114,28 @@ public class Collector extends CardOwner {
     @Override
     public TradeOffer generateTradeOffer(TradeOfferData data) {
         if (data.offered.isEmpty()) return null;
-        List<CardInstance> give = new ArrayList<>(), receive = new ArrayList<>();
-        List<CardInstance> canGive = unwantedCards();
+        List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
+        List<Card> canGive = unwantedCards();
 
-        Comparator<CardInstance> comparator = Comparator.comparingDouble(c -> data.wanted.contains(c.getCard()) ? 1 : 0);
-        Map<Rarity, PriorityQueue<CardInstance>> rarityPriorityMap = new HashMap<>();
+        Comparator<Card> comparator = Comparator.comparingDouble(c -> data.wanted.contains(c) ? 1 : 0);
+        Map<Rarity, PriorityQueue<Card>> rarityPriorityMap = new HashMap<>();
         for (Rarity rarity : Rarity.values()) {
             rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
         }
-        for (CardInstance inst : canGive) {
-            Rarity rarity = inst.getCard().getRarity();
-            rarityPriorityMap.get(rarity).add(inst);
+        for (Card card : canGive) {
+            Rarity rarity = card.getRarity();
+            rarityPriorityMap.get(rarity).add(card);
         }
 
         while (!data.offered.isEmpty() && !canGive.isEmpty()) {
-            CardInstance rInst = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
-            Rarity rarity = rInst.getCard().getRarity();
+            Card rCard = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
+            Rarity rarity = rCard.getRarity();
 
             if (rarityPriorityMap.get(rarity).size() > 0) {
-                CardInstance gInst = rarityPriorityMap.get(rarity).poll();
+                Card gCard = rarityPriorityMap.get(rarity).poll();
 
-                receive.add(rInst);
-                give.add(gInst);
+                receive.add(rCard);
+                give.add(gCard);
             }
         }
 
@@ -162,8 +147,8 @@ public class Collector extends CardOwner {
         double value = 0;
         Set<Card> desiredInOffer = new HashSet<>();
 
-        for (CardInstance inst : offer.give) {
-            desiredInOffer.add(inst.getCard());
+        for (Card card : offer.give) {
+            desiredInOffer.add(card);
         }
         desiredInOffer.retainAll(desiredNotOwned);
 
@@ -215,7 +200,7 @@ public class Collector extends CardOwner {
                     StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
                     " possible agents to trade with.");
 
-                    List<CardInstance> offered = unwantedCards();
+                    List<Card> offered = unwantedCards();
                     addBehaviour(new TradeOfferInitiator(collector,
                         new TradeOfferData(desiredNotOwned, offered), agents));
                 }
