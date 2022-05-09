@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +26,7 @@ import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
 public class Collector extends CardOwner {
-    private static final int MAX_DESIRED_CARDS = 30, MAX_NEW_CARDS = 15;
+    private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 2, MAX_NEW_CARDS = 15;
     private Set<Card> desiredCards = new HashSet<>(), ownedDesiredCards = new HashSet<>();
 
     @Override
@@ -38,7 +37,7 @@ public class Collector extends CardOwner {
 
     @Override
     protected void handleNewCardSet(CardSet set) {
-        int newCards = RandomUtils.intRangeInclusive(0, MAX_NEW_CARDS);
+        int newCards = RandomUtils.intRangeInclusive(MIN_NEW_CARDS, MAX_NEW_CARDS);
         newCards = Math.max(0, Math.min(newCards, MAX_DESIRED_CARDS - desiredCards.size()));
 
         if (newCards > 0) {
@@ -163,7 +162,7 @@ public class Collector extends CardOwner {
             if (desiredCards.isEmpty()) return; 
 
             // Look for possible trades
-            Set<AID> haveAgents = new HashSet<>(), wantAgents = new HashSet<>();
+            Set<AID> haveAgents = new HashSet<>();
 
             for (Card card : desiredCards) {
                 DFAgentDescription template = new DFAgentDescription();
@@ -175,35 +174,15 @@ public class Collector extends CardOwner {
                 try {
                     DFAgentDescription[] results = DFService.search(myAgent, template);
                     for (DFAgentDescription result : results) {
-                        haveAgents.add(result.getName());
+                        if (result.getName() != getAID()) {
+                            haveAgents.add(result.getName());
+                        }
                     }
                 }
                 catch (FIPAException e) {
                     e.printStackTrace();
                 }
             }
-
-            Iterator<?> it = dfd.getAllServices();
-            while (it.hasNext()) {
-                DFAgentDescription template = new DFAgentDescription();
-                ServiceDescription haveSd = (ServiceDescription) it.next(),
-                    wantSd = new ServiceDescription();
-                wantSd.setType(CardOwner.DF_WANT_TYPE);
-                wantSd.setName(haveSd.getName());
-                template.addServices(wantSd);
-
-                try {
-                    DFAgentDescription[] results = DFService.search(myAgent, template);
-                    for (DFAgentDescription result : results) {
-                        wantAgents.add(result.getName());
-                    }
-                }
-                catch (FIPAException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            haveAgents.retainAll(wantAgents);
 
             if (!haveAgents.isEmpty()) {
                 StringUtils.logAgentMessage(myAgent, "📢 Found " + haveAgents.size() +
