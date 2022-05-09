@@ -1,5 +1,6 @@
 package asma_proj1.agents;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +53,21 @@ public abstract class CardOwner extends BaseAgent {
 
     public Map<CardInstance, Integer> getCollection() {
         return Collections.unmodifiableMap(collection);
+    }
+
+    public boolean cardsInCollection(Collection<CardInstance> cards) {
+        Map<CardInstance, Integer> amountMap = new HashMap<>();
+        for (CardInstance inst : cards) {
+            amountMap.compute(inst, (k, v) -> v == null ? 1 : v + 1);
+        }
+
+        for (Map.Entry<CardInstance, Integer> entry : amountMap.entrySet()) {
+            if (collection.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected void receiveCapital() {

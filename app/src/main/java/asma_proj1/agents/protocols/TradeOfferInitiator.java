@@ -82,29 +82,21 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         if (numOffers > 0) {
             StringUtils.logAgentMessage(myAgent, "🔄 Received " + numOffers + " trade offers.");
 
-            Map<CardInstance, Integer> toRemove = new HashMap<>();
-            for (CardInstance inst : bestOffer.receive) {
-                toRemove.compute(inst, (k, v) -> v == null ? 1 : v + 1);
-            }
-
             cardOwner.collectionLock.lock();
 
-            // Check if the cards in the offer still exist in our collection
-            Map<CardInstance, Integer> collection = cardOwner.getCollection();
-            for (CardInstance inst : toRemove.keySet()) {
-                if (collection.getOrDefault(inst, 0) < toRemove.get(inst)) {
-                    cardOwner.collectionLock.unlock();
-                    return;
-                }
+            if (!cardOwner.cardsInCollection(bestOffer.receive)) {
+                cardOwner.collectionLock.unlock();
+                return;
             }
 
             cardOwner.removeCardsFromCollection(bestOffer.receive);
             bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-            cardOwner.collectionLock.unlock();
 
             StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer (value = " +
                 StringUtils.colorize(String.valueOf(bestValue), StringUtils.CYAN) +
                 "):\n" + bestOffer);
+            
+            cardOwner.collectionLock.unlock();
         }
     }
 
