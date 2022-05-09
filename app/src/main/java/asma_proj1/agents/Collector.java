@@ -2,10 +2,12 @@ package asma_proj1.agents;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ import asma_proj1.agents.protocols.TradeOfferInitiator;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardInstance;
 import asma_proj1.card.CardSet;
+import asma_proj1.card.Rarity;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
@@ -123,16 +126,22 @@ public class Collector extends CardOwner {
         List<CardInstance> give = new ArrayList<>(), receive = new ArrayList<>();
         List<CardInstance> canGive = unwantedCards();
 
+        Comparator<CardInstance> comparator = Comparator.comparingDouble(c -> data.wanted.contains(c.getCard()) ? 1 : 0);
+        Map<Rarity, PriorityQueue<CardInstance>> rarityPriorityMap = new HashMap<>();
+        for (Rarity rarity : Rarity.values()) {
+            rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
+        }
+        for (CardInstance inst : canGive) {
+            Card card = inst.getCard();
+            rarityPriorityMap.get(card.getRarity()).add(inst);
+        }
+
         while (!data.offered.isEmpty() && !canGive.isEmpty()) {
             CardInstance rInst = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
+            Rarity rarity = rInst.getCard().getRarity();
 
-            List<CardInstance> candidates = canGive.stream()
-                .filter(c -> c.getCard().getRarity() == rInst.getCard().getRarity())
-                .collect(Collectors.toList());
-
-            if (candidates.size() > 0) {
-                CardInstance gInst = candidates.get(RandomUtils.random.nextInt(candidates.size()));
-                canGive.remove(gInst);
+            if (rarityPriorityMap.get(rarity).size() > 0) {
+                CardInstance gInst = rarityPriorityMap.get(rarity).poll();
 
                 receive.add(rInst);
                 give.add(gInst);
@@ -188,9 +197,9 @@ public class Collector extends CardOwner {
                     StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
                     " possible agents to trade with.");
 
-                    List<Card> wanted = new ArrayList<>(desiredNotOwned);
                     List<CardInstance> offered = unwantedCards();
-                    addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), agents));
+                    addBehaviour(new TradeOfferInitiator(collector,
+                        new TradeOfferData(desiredNotOwned, offered), agents));
                 }
             }
 

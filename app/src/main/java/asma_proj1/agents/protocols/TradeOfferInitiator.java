@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
