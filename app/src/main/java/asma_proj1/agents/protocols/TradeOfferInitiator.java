@@ -85,8 +85,6 @@ public class TradeOfferInitiator extends ContractNetInitiator {
 
             cardOwner.collectionLock.lock();
 
-            System.out.println("hereee");
-
             // Check if the cards in the offer still exist in our collection
             Map<CardInstance, Integer> collection = cardOwner.getCollection();
             for (Map.Entry<CardInstance, Integer> entry : toRemove.entrySet()) {

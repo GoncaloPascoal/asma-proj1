@@ -23,6 +23,9 @@ public class TradeOfferResponder extends ContractNetResponder {
     @Override
     protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException,
             FailureException, NotUnderstoodException {
+        if (cfp.getPerformative() != ACLMessage.CFP)
+            throw new NotUnderstoodException("Wrong performative.");
+        
         try {
             data = (TradeOfferData) cfp.getContentObject();
         }

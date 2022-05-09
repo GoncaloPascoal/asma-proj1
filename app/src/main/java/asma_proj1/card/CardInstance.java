@@ -1,6 +1,7 @@
 package asma_proj1.card;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class CardInstance implements Serializable {
     private Card card;
@@ -29,5 +30,10 @@ public class CardInstance implements Serializable {
         if (obj == null || getClass() != obj.getClass()) return false;
         CardInstance other = (CardInstance) obj;
         return card == other.card;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(card);
     }
 }
