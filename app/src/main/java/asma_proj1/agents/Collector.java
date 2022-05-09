@@ -32,6 +32,12 @@ public class Collector extends CardOwner {
     private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 2, MAX_NEW_CARDS = 15;
     private Set<Card> desiredCards = new HashSet<>(), desiredNotOwned = new HashSet<>();
 
+    private static final Map<Rarity, Double> rarityValueMap = Map.of(
+        Rarity.COMMON, 10.0,
+        Rarity.UNCOMMON, 25.0,
+        Rarity.RARE, 100.0
+    );
+
     @Override
     protected void setup() {
         super.setup();
@@ -132,8 +138,8 @@ public class Collector extends CardOwner {
             rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
         }
         for (CardInstance inst : canGive) {
-            Card card = inst.getCard();
-            rarityPriorityMap.get(card.getRarity()).add(inst);
+            Rarity rarity = inst.getCard().getRarity();
+            rarityPriorityMap.get(rarity).add(inst);
         }
 
         while (!data.offered.isEmpty() && !canGive.isEmpty()) {
@@ -153,7 +159,19 @@ public class Collector extends CardOwner {
 
     @Override
     public double evaluateTradeOffer(TradeOffer offer) {
-        return 0;
+        double value = 0;
+        Set<Card> desiredInOffer = new HashSet<>();
+
+        for (CardInstance inst : offer.give) {
+            desiredInOffer.add(inst.getCard());
+        }
+        desiredInOffer.retainAll(desiredNotOwned);
+
+        for (Card card : desiredInOffer) {
+            value += rarityValueMap.get(card.getRarity());
+        }
+
+        return value;
     }
 
     private class CollectorBehaviour extends TickerBehaviour {

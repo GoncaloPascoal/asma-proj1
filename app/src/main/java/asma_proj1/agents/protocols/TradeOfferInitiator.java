@@ -50,6 +50,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
     @Override
     protected void handleAllResponses(Vector responses, Vector acceptances) {
         ACLMessage bestMessage = null;
+        double bestValue = 0;
         int numOffers = 0;
 
         for (Object obj : responses) {
@@ -64,9 +65,12 @@ public class TradeOfferInitiator extends ContractNetInitiator {
 
                 try {
                     TradeOffer offer = (TradeOffer) msg.getContentObject();
-                    if (bestOffer == null || cardOwner.evaluateTradeOffer(offer) > cardOwner.evaluateTradeOffer(bestOffer)) {
+                    double value = cardOwner.evaluateTradeOffer(offer);
+
+                    if (bestOffer == null || value > bestValue) {
                         bestMessage = reply;
                         bestOffer = offer;
+                        bestValue = value;
                     }
                 }
                 catch (UnreadableException e) {
@@ -98,7 +102,9 @@ public class TradeOfferInitiator extends ContractNetInitiator {
             bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
             cardOwner.collectionLock.unlock();
 
-            StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer:\n" + bestOffer);
+            StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer (value = " +
+                StringUtils.colorize(String.valueOf(bestValue), StringUtils.CYAN) +
+                "):\n" + bestOffer);
         }
     }
 
