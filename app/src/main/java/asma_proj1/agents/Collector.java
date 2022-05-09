@@ -162,9 +162,11 @@ public class Collector extends CardOwner {
             if (desiredCards.isEmpty()) return; 
 
             // Look for possible trades
-            Set<AID> haveAgents = new HashSet<>();
+            Set<AID> agents = new HashSet<>();
+            Set<Card> desiredNotOwned = new HashSet<>(desiredCards);
+            desiredNotOwned.removeAll(ownedDesiredCards);
 
-            for (Card card : desiredCards) {
+            for (Card card : desiredNotOwned) {
                 DFAgentDescription template = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
                 sd.setType(CardOwner.DF_HAVE_TYPE);
@@ -175,7 +177,7 @@ public class Collector extends CardOwner {
                     DFAgentDescription[] results = DFService.search(myAgent, template);
                     for (DFAgentDescription result : results) {
                         if (result.getName() != getAID()) {
-                            haveAgents.add(result.getName());
+                            agents.add(result.getName());
                         }
                     }
                 }
@@ -184,15 +186,15 @@ public class Collector extends CardOwner {
                 }
             }
 
-            if (!haveAgents.isEmpty()) {
-                StringUtils.logAgentMessage(myAgent, "📢 Found " + haveAgents.size() +
+            if (!agents.isEmpty()) {
+                StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
                 " possible agents to trade with.");
 
                 List<Card> wanted = new ArrayList<>();
                 wanted.addAll(desiredCards);
                 wanted.removeAll(ownedDesiredCards);
                 List<CardInstance> offered = unwantedCards();
-                addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), haveAgents));
+                addBehaviour(new TradeOfferInitiator(collector, new TradeOfferData(wanted, offered), agents));
             }
 
             // Purchase a pack of the set with the highest number of desired cards
