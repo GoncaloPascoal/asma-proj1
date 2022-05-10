@@ -184,7 +184,7 @@ public abstract class CardOwner extends BaseAgent {
         updateDfd();
     }
 
-    private void findMarketplace() {
+    protected void findMarketplace() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType(Marketplace.SERVICE_TYPE);

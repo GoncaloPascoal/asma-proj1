@@ -10,6 +10,7 @@ import jade.proto.SimpleAchieveREInitiator;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.card.Card;
+import asma_proj1.utils.StringUtils;
 
 public class SnapshotInitiator extends SimpleAchieveREInitiator {
     private final CardOwner cardOwner;
@@ -33,6 +34,7 @@ public class SnapshotInitiator extends SimpleAchieveREInitiator {
         try {
             HashMap<Card, Snapshot> snapshot = (HashMap<Card, Snapshot>) msg.getContentObject();
             cardOwner.setLatestSnapshot(snapshot);
+            StringUtils.logAgentMessage(cardOwner, "📸 Obtained latest market snapshot.");
         }
         catch (UnreadableException | ClassCastException e) {
             e.printStackTrace();

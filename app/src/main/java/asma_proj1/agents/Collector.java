@@ -16,7 +16,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-
+import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.agents.protocols.TradeOfferInitiator;
@@ -166,7 +166,14 @@ public class Collector extends CardOwner {
 
         @Override
         protected void onTick() {
-            if (desiredCards.isEmpty()) return; 
+            if (desiredCards.isEmpty()) return;
+
+            if (marketplace == null) {
+                findMarketplace();
+            }
+            else {
+                addBehaviour(new SnapshotInitiator(collector, marketplace));
+            }
 
             if (!collection.isEmpty()) {
                 // Look for possible trades
