@@ -9,6 +9,7 @@ import java.io.IOException;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Transaction;
+import asma_proj1.utils.StringUtils;
 
 public class SellCardsInitiator extends SimpleAchieveREInitiator {
     private final CardOwner cardOwner;
@@ -28,6 +29,14 @@ public class SellCardsInitiator extends SimpleAchieveREInitiator {
 
         cardOwner.collectionLock.lock();
         try {
+            int totalFee = Marketplace.calculateSellerFee(transaction);
+            if (!cardOwner.changeCapital(-totalFee)) {
+                StringUtils.logAgentMessage(cardOwner,
+                    StringUtils.colorize("Couldn't pay seller's fee to marketplace.", StringUtils.RED));
+                cardOwner.collectionLock.unlock();
+                return msg;
+            }
+
             msg.addReceiver(marketplace);
             msg.setContentObject(transaction);
             cardOwner.removeCardsFromCollection(transaction.cards);

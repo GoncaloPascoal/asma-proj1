@@ -14,12 +14,17 @@ import jade.proto.SubscriptionResponder.Subscription;
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
 import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.agents.protocols.data.Snapshot;
+import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
 
 public class Marketplace extends BaseAgent {
     public static final String SERVICE_TYPE = "marketplace",
         SNAPSHOT_PROTOCOL = "snapshot",
         SELL_CARDS_PROTOCOL = "sell-cards";
+
+    public static final int MIN_SELLER_FEE = 3;
+    public static final double SELLER_FEE = 0.05, BUYER_FEE = 0.05;
+
     private final Map<Card, TreeSet<Listing>> listings = new HashMap<>();
     private final Map<AID, Subscription> subscriptions = new HashMap<>();
 
@@ -46,6 +51,18 @@ public class Marketplace extends BaseAgent {
         addBehaviour(new SnapshotResponder(this));
     }
 
+    public static int calculateSellerFee(int price) {
+        return Math.max(MIN_SELLER_FEE, (int) (SELLER_FEE * price));
+    }
+
+    public static int calculateSellerFee(Transaction transaction) {
+        int totalFee = 0;
+        for (Card card : transaction.cards) {
+            totalFee += transaction.priceMap.get(card);
+        }
+        return totalFee;
+    }
+
     public void addListing(Card card, Listing listing) {
         listings.putIfAbsent(card, new TreeSet<>());
         listings.get(card).add(listing);
@@ -69,20 +86,5 @@ public class Marketplace extends BaseAgent {
 
     public void addSubscription(AID aid, Subscription subscription) {
         subscriptions.put(aid, subscription);
-    }
-
-    public class Listing implements Comparable<Listing> {
-        public final AID aid;
-        public final int price;
-
-        public Listing(AID aid, int price) {
-            this.aid = aid;
-            this.price = price;
-        }
-
-        @Override
-        public int compareTo(Listing other) {
-            return Integer.compare(price, other.price);
-        }
     }
 }
