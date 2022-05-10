@@ -4,8 +4,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-import asma_proj1.agents.protocols.TradeOffer;
-import asma_proj1.agents.protocols.TradeOfferData;
+import asma_proj1.agents.protocols.data.TradeOffer;
+import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.card.Card;
 
 public class CompetitivePlayer extends CardOwner {

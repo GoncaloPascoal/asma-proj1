@@ -1,4 +1,4 @@
-package asma_proj1.agents.protocols;
+package asma_proj1.agents.protocols.data;
 
 import java.io.Serializable;
 

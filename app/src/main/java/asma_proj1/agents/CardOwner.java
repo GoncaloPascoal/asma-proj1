@@ -18,10 +18,10 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import asma_proj1.agents.protocols.MarketplaceSubscriptionInitiator;
-import asma_proj1.agents.protocols.Snapshot;
-import asma_proj1.agents.protocols.TradeOffer;
-import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.agents.protocols.TradeOfferResponder;
+import asma_proj1.agents.protocols.data.Snapshot;
+import asma_proj1.agents.protocols.data.TradeOffer;
+import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.utils.ConversionUtils;

@@ -9,6 +9,7 @@ import jade.proto.SimpleAchieveREInitiator;
 
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
+import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.card.Card;
 import asma_proj1.utils.StringUtils;
 

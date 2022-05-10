@@ -11,6 +11,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.proto.SimpleAchieveREResponder;
 
 import asma_proj1.agents.Marketplace;
+import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.card.Card;
 
 public class SnapshotResponder extends SimpleAchieveREResponder {

@@ -12,13 +12,14 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.proto.SubscriptionResponder.Subscription;
 
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
-import asma_proj1.agents.protocols.Snapshot;
 import asma_proj1.agents.protocols.SnapshotResponder;
+import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.card.Card;
 
 public class Marketplace extends BaseAgent {
     public static final String SERVICE_TYPE = "marketplace",
-        SNAPSHOT_PROTOCOL = "snapshot";
+        SNAPSHOT_PROTOCOL = "snapshot",
+        SELL_CARDS_PROTOCOL = "sell-cards";
     private final Map<Card, TreeSet<Listing>> listings = new HashMap<>();
     private final Map<AID, Subscription> subscriptions = new HashMap<>();
 
