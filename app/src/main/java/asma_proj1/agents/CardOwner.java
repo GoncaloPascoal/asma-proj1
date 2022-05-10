@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -30,13 +31,16 @@ public abstract class CardOwner extends BaseAgent {
 
     protected final Map<Card, Integer> collection = new HashMap<>();
     private final Map<Integer, Integer> cardsForTrade = new HashMap<>();
-    protected final DFAgentDescription dfd = new DFAgentDescription();
     public final Lock collectionLock = new ReentrantLock();
+
+    protected final DFAgentDescription dfd = new DFAgentDescription();
+    private AID marketplace = null;
 
     @Override
     protected void setup() {
         super.setup();
 
+        // Trading (yellow pages) setup
         dfd.setName(getAID());
         try {
             DFService.register(this, dfd);
@@ -44,12 +48,18 @@ public abstract class CardOwner extends BaseAgent {
         catch (FIPAException e) {
             e.printStackTrace();
         }
-
         addBehaviour(new TradeOfferResponder(this));
 
         receiveCapital();
         addBehaviour(new ReceiveCapital(this));
+
+        findMarketplace();
     }
+
+    protected abstract void handleNewCards(List<Card> cards);
+    public abstract List<Card> selectCardsForTrade(List<Card> offered);
+    public abstract TradeOffer generateTradeOffer(TradeOfferData data);
+    public abstract double evaluateTradeOffer(TradeOffer offer);
 
     public Map<Card, Integer> getCollection() {
         return Collections.unmodifiableMap(collection);
@@ -168,10 +178,21 @@ public abstract class CardOwner extends BaseAgent {
         updateDfd();
     }
 
-    protected abstract void handleNewCards(List<Card> cards);
-    public abstract List<Card> selectCardsForTrade(List<Card> offered);
-    public abstract TradeOffer generateTradeOffer(TradeOfferData data);
-    public abstract double evaluateTradeOffer(TradeOffer offer);
+    private void findMarketplace() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(Marketplace.SERVICE_TYPE);
+
+        try {
+            DFAgentDescription[] results = DFService.search(this, template);
+            if (results.length > 0) {
+                marketplace = results[0].getName();
+            }
+        }
+        catch (FIPAException e) {
+            e.printStackTrace();
+        }
+    }
 
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;
