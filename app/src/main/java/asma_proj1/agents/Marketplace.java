@@ -9,7 +9,9 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.proto.SubscriptionResponder.Subscription;
 
+import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
 import asma_proj1.agents.protocols.Snapshot;
 import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.card.Card;
@@ -18,6 +20,7 @@ public class Marketplace extends BaseAgent {
     public static final String SERVICE_TYPE = "marketplace",
         SNAPSHOT_PROTOCOL = "snapshot";
     private final Map<Card, TreeSet<Listing>> listings = new HashMap<>();
+    private final Map<AID, Subscription> subscriptions = new HashMap<>();
 
     @Override
     protected void setup() {
@@ -38,6 +41,7 @@ public class Marketplace extends BaseAgent {
             e.printStackTrace();
         }
 
+        addBehaviour(new MarketplaceSubscriptionResponder(this));
         addBehaviour(new SnapshotResponder(this));
     }
 
@@ -60,6 +64,10 @@ public class Marketplace extends BaseAgent {
         }
 
         return snapshots;
+    }
+
+    public void addSubscription(AID aid, Subscription subscription) {
+        subscriptions.put(aid, subscription);
     }
 
     public class Listing implements Comparable<Listing> {

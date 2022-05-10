@@ -17,6 +17,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+import asma_proj1.agents.protocols.MarketplaceSubscriptionInitiator;
 import asma_proj1.agents.protocols.Snapshot;
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
@@ -193,6 +194,7 @@ public abstract class CardOwner extends BaseAgent {
             DFAgentDescription[] results = DFService.search(this, template);
             if (results.length > 0) {
                 marketplace = results[0].getName();
+                addBehaviour(new MarketplaceSubscriptionInitiator(this, marketplace));
             }
         }
         catch (FIPAException e) {
