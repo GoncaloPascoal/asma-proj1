@@ -12,10 +12,12 @@ import asma_proj1.agents.Marketplace;
 import asma_proj1.card.Card;
 
 public class SnapshotInitiator extends SimpleAchieveREInitiator {
+    private final CardOwner cardOwner;
     private final AID marketplace;
 
     public SnapshotInitiator(CardOwner cardOwner, AID marketplace) {
         super(cardOwner, new ACLMessage(ACLMessage.REQUEST));
+        this.cardOwner = cardOwner;
         this.marketplace = marketplace;
     }
 
@@ -28,10 +30,9 @@ public class SnapshotInitiator extends SimpleAchieveREInitiator {
 
     @Override
     protected void handleInform(ACLMessage msg) {
-        // TODO: save most recent snapshot
         try {
-            HashMap<Card, Snapshot> snapshots = (HashMap<Card, Snapshot>) msg.getContentObject();
-            System.out.println(snapshots);
+            HashMap<Card, Snapshot> snapshot = (HashMap<Card, Snapshot>) msg.getContentObject();
+            cardOwner.setLatestSnapshot(snapshot);
         }
         catch (UnreadableException | ClassCastException e) {
             e.printStackTrace();

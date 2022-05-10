@@ -17,6 +17,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+import asma_proj1.agents.protocols.Snapshot;
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.agents.protocols.TradeOfferResponder;
@@ -34,7 +35,8 @@ public abstract class CardOwner extends BaseAgent {
     public final Lock collectionLock = new ReentrantLock();
 
     protected final DFAgentDescription dfd = new DFAgentDescription();
-    private AID marketplace = null;
+    protected AID marketplace = null;
+    protected Map<Card, Snapshot> latestSnapshot = new HashMap<>();
 
     @Override
     protected void setup() {
@@ -63,6 +65,10 @@ public abstract class CardOwner extends BaseAgent {
 
     public Map<Card, Integer> getCollection() {
         return Collections.unmodifiableMap(collection);
+    }
+
+    public void setLatestSnapshot(Map<Card, Snapshot> latestSnapshot) {
+        this.latestSnapshot = latestSnapshot;
     }
 
     public boolean cardsInCollection(Collection<Card> cards) {
