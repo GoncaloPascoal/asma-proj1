@@ -3,10 +3,9 @@ package asma_proj1.agents;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -20,16 +19,17 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import asma_proj1.agents.protocols.TradeOffer;
 import asma_proj1.agents.protocols.TradeOfferData;
 import asma_proj1.agents.protocols.TradeOfferResponder;
-import asma_proj1.card.CardInstance;
+import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.ConversionUtils;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
 public abstract class CardOwner extends BaseAgent {
-    public static final String DF_HAVE_TYPE = "have",
-        DF_WANT_TYPE = "want";
+    public static final String DF_HAVE_TYPE = "have";
 
-    protected final Map<CardInstance, Integer> collection = new HashMap<>();
+    protected final Map<Card, Integer> collection = new HashMap<>();
+    private final Map<Integer, Integer> cardsForTrade = new HashMap<>();
     protected final DFAgentDescription dfd = new DFAgentDescription();
     public final Lock collectionLock = new ReentrantLock();
 
@@ -51,17 +51,14 @@ public abstract class CardOwner extends BaseAgent {
         addBehaviour(new ReceiveCapital(this));
     }
 
-    public Map<CardInstance, Integer> getCollection() {
+    public Map<Card, Integer> getCollection() {
         return Collections.unmodifiableMap(collection);
     }
 
-    public boolean cardsInCollection(Collection<CardInstance> cards) {
-        Map<CardInstance, Integer> amountMap = new HashMap<>();
-        for (CardInstance inst : cards) {
-            amountMap.compute(inst, (k, v) -> v == null ? 1 : v + 1);
-        }
+    public boolean cardsInCollection(Collection<Card> cards) {
+        Map<Card, Integer> countMap = ConversionUtils.collectionToCountMap(cards);
 
-        for (Map.Entry<CardInstance, Integer> entry : amountMap.entrySet()) {
+        for (Map.Entry<Card, Integer> entry : countMap.entrySet()) {
             if (collection.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
                 return false;
             }
@@ -81,38 +78,23 @@ public abstract class CardOwner extends BaseAgent {
         if (changeCapital(-CardSet.PACK_PRICE)) {
             StringUtils.logAgentMessage(this, "Purchased a card pack: " + changeCapitalMessage(-CardSet.PACK_PRICE));
 
-            List<CardInstance> pack = set.openPack();
+            List<Card> pack = set.openPack();
             addCardsToCollection(pack);
         }
     }
 
-    public void addCardsToCollection(List<CardInstance> cards) {
-        for (CardInstance inst : cards) {
-            collection.compute(inst, (k, v) -> v == null ? 1 : v + 1);
+    public void addCardsToCollection(List<Card> cards) {
+        for (Card card : cards) {
+            collection.compute(card, (k, v) -> v == null ? 1 : v + 1);
         }
         handleNewCards(cards);
     }
 
-    public void removeCardsFromCollection(List<CardInstance> cards) {
-        Set<CardInstance> unique = new HashSet<>(cards);
-
-        for (CardInstance inst : cards) {
-            collection.compute(inst, (k, v) -> v == null || v == 1 ? null : v - 1);
+    public void removeCardsFromCollection(List<Card> cards) {
+        for (Card card : cards) {
+            collection.compute(card, (k, v) -> v == null || v == 1 ? null : v - 1);
         }
-
-        for (CardInstance inst : unique) {
-            ServiceDescription sd = new ServiceDescription();
-            sd.setType(DF_HAVE_TYPE);
-            sd.setName(String.valueOf(inst.getCard().getId()));
-            dfd.removeServices(sd);
-            
-            if (collection.containsKey(inst)) {
-                sd.addProperties(new Property("count", collection.get(inst)));
-                dfd.addServices(sd);
-            }
-        }
-
-        updateDfd();
+        unlistCards(cards);
     }
 
     protected void updateDfd() {
@@ -124,34 +106,70 @@ public abstract class CardOwner extends BaseAgent {
         }
     }
 
-    protected void listCards(List<CardInstance> cards, String type) {
-        for (CardInstance inst : cards) {
-            ServiceDescription sd = new ServiceDescription();
-            sd.setType(type);
-            sd.setName(String.valueOf(inst.getCard().getId()));
+    protected void listCards(List<Card> cards) {
+        Map<Integer, Integer> countMap = new HashMap<>();
+        for (Card card : cards) {
+            countMap.compute(card.getId(), (k, v) -> v == null ? 1 : v + 1);
+        }
 
-            if (collection.containsKey(inst)) {
-                sd.addProperties(new Property("count", collection.get(inst)));
-                dfd.addServices(sd);
+        for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+            cardsForTrade.compute(entry.getKey(), (k, v) -> v == null ? entry.getValue() : v + entry.getValue());
+        }
+
+        Iterator<?> it = dfd.getAllServices();
+        while (it.hasNext()) {
+            ServiceDescription sd = (ServiceDescription) it.next();
+
+            if (sd.getType() == DF_HAVE_TYPE) {
+                int id = Integer.valueOf(sd.getName());
+
+                if (countMap.containsKey(id)) {
+                    sd.removeProperties(new Property("count", null));
+                    sd.addProperties(new Property("count", cardsForTrade.get(id)));
+                    countMap.remove(id);
+                }
             }
         }
 
-        updateDfd();
-    }
-
-    protected void unlistCards(List<CardInstance> cards, String type) {
-        for (CardInstance inst : cards) {
+        for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+            int id = entry.getKey();
             ServiceDescription sd = new ServiceDescription();
-            sd.setType(type);
-            sd.setName(String.valueOf(inst.getCard().getId()));
-            dfd.removeServices(sd);
+            sd.setType(DF_HAVE_TYPE);
+            sd.setName(String.valueOf(id));
+            sd.addProperties(new Property("count", cardsForTrade.get(id)));
+            dfd.addServices(sd);
         }
 
         updateDfd();
     }
 
-    protected abstract void handleNewCards(List<CardInstance> cards);
-    public abstract List<CardInstance> selectCardsForTrade(List<CardInstance> offered);
+    protected void unlistCards(List<Card> cards) {
+        for (Card card : cards) {
+            cardsForTrade.compute(card.getId(), (k, v) -> v == null || v == 1 ? null : v - 1);
+        }
+
+        Iterator<?> it = dfd.getAllServices();
+        while (it.hasNext()) {
+            ServiceDescription sd = (ServiceDescription) it.next();
+
+            if (sd.getType() == DF_HAVE_TYPE) {
+                int id = Integer.valueOf(sd.getName());
+
+                if (cardsForTrade.containsKey(id)) {
+                    sd.removeProperties(new Property("count", null));
+                    sd.addProperties(new Property("count", cardsForTrade.get(id)));
+                }
+                else {
+                    it.remove();
+                }
+            } 
+        }
+
+        updateDfd();
+    }
+
+    protected abstract void handleNewCards(List<Card> cards);
+    public abstract List<Card> selectCardsForTrade(List<Card> offered);
     public abstract TradeOffer generateTradeOffer(TradeOfferData data);
     public abstract double evaluateTradeOffer(TradeOffer offer);
 

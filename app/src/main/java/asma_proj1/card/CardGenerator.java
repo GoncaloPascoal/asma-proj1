@@ -14,6 +14,16 @@ public final class CardGenerator {
         PartOfSpeech.PREPOSITION, new String[] {"of", "from", "in"},
         PartOfSpeech.ADJECTIVE, new String[] {"Brave", "Epic", "Powerful", "Weak", "Horrible", "Holy", "Cruel", "Kind", "Destructive"}
     );
+    private static final Map<Rarity, Double> powerMean = Map.of(
+        Rarity.COMMON, 0.0,
+        Rarity.UNCOMMON, 0.2,
+        Rarity.RARE, 0.5
+    );
+    private static final Map<Rarity, Double> powerStDev = Map.of(
+        Rarity.COMMON, 0.8,
+        Rarity.UNCOMMON, 1.0,
+        Rarity.RARE, 1.5
+    );
 
     private int nextId = 0;
 
@@ -29,7 +39,10 @@ public final class CardGenerator {
     }
 
     public Card generateCard(Rarity rarity) {
-        Card card = new Card(nextId, generateName(), rarity, RandomUtils.normalDistribution());
+        Card card = new Card(nextId, generateName(), rarity, RandomUtils.normalDistribution(
+            powerMean.get(rarity),
+            powerStDev.get(rarity)
+        ));
         ++nextId;
         return card;
     }

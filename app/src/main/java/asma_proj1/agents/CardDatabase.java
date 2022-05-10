@@ -30,7 +30,6 @@ public class CardDatabase extends Agent {
         }
 
         generateCardSet();
-
         //addBehaviour(new GenerateCardSet(this));
     }
 
