@@ -137,6 +137,7 @@ public abstract class CardOwner extends BaseAgent {
             sd.setType(DF_HAVE_TYPE);
             sd.setName(String.valueOf(id));
             sd.addProperties(new Property("count", cardsForTrade.get(id)));
+            dfd.addServices(sd);
         }
 
         updateDfd();
