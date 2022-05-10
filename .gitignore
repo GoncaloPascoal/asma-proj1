@@ -30,4 +30,4 @@ build
 
 # JADE files
 APDescription.txt
-MTPs-Main-Container.txt
+app/MTPs-*.txt
