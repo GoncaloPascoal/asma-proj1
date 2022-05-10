@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
@@ -56,8 +55,6 @@ public class Collector extends CardOwner {
             List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
                 " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
-
-            listCards(newDesired, DF_WANT_TYPE);
         }
     }
 
@@ -76,8 +73,7 @@ public class Collector extends CardOwner {
             }
         }
 
-        unlistCards(wanted, CardOwner.DF_WANT_TYPE);
-        listCards(unwanted, CardOwner.DF_HAVE_TYPE);
+        listCards(unwanted);
 
         if (!wanted.isEmpty()) {
             StringUtils.logAgentMessage(this, "🍀 Got new wanted cards: " +

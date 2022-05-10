@@ -8,7 +8,7 @@ import jade.core.Agent;
 
 import asma_proj1.card.Card;
 
-public class StringUtils {
+public final class StringUtils {
     public static final String RED = "\033[1;31m",
         GREEN = "\033[1;32m",
         YELLOW = "\033[1;33m",

@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class RandomUtils {
+public final class RandomUtils {
     public static final Random random = new Random(System.currentTimeMillis());
 
     private RandomUtils() {}
