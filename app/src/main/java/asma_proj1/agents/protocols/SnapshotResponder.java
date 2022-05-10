@@ -24,8 +24,7 @@ public class SnapshotResponder extends SimpleAchieveREResponder {
 
     @Override
     protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
-        // TODO: generate snapshot from marketplace
-        HashMap<Card, Snapshot> snapshots = new HashMap<>();
+        HashMap<Card, Snapshot> snapshots = marketplace.generateSnapshot();
 
         ACLMessage msg = request.createReply();
         msg.setPerformative(ACLMessage.INFORM);

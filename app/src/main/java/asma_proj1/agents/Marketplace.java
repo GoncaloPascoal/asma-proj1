@@ -9,6 +9,8 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+
+import asma_proj1.agents.protocols.Snapshot;
 import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.card.Card;
 
@@ -42,6 +44,22 @@ public class Marketplace extends BaseAgent {
     public void addListing(Card card, Listing listing) {
         listings.putIfAbsent(card, new TreeSet<>());
         listings.get(card).add(listing);
+    }
+
+    public HashMap<Card, Snapshot> generateSnapshot() {
+        HashMap<Card, Snapshot> snapshots = new HashMap<>();
+
+        for (Card card : listings.keySet()) {
+            TreeSet<Listing> cardListings = listings.get(card);
+            
+            int count = cardListings.size();
+            int minPrice = cardListings.first().price;
+            int averagePrice = cardListings.stream().mapToInt(l -> l.price).sum();
+
+            snapshots.put(card, new Snapshot(count, minPrice, averagePrice));
+        }
+
+        return snapshots;
     }
 
     public class Listing implements Comparable<Listing> {

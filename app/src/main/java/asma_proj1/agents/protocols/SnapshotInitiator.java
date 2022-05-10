@@ -1,10 +1,15 @@
 package asma_proj1.agents.protocols;
 
-import asma_proj1.agents.CardOwner;
-import asma_proj1.agents.Marketplace;
+import java.util.HashMap;
+
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREInitiator;
+
+import asma_proj1.agents.CardOwner;
+import asma_proj1.agents.Marketplace;
+import asma_proj1.card.Card;
 
 public class SnapshotInitiator extends SimpleAchieveREInitiator {
     private final AID marketplace;
@@ -23,6 +28,13 @@ public class SnapshotInitiator extends SimpleAchieveREInitiator {
 
     @Override
     protected void handleInform(ACLMessage msg) {
-        
+        // TODO: save most recent snapshot
+        try {
+            HashMap<Card, Snapshot> snapshots = (HashMap<Card, Snapshot>) msg.getContentObject();
+            System.out.println(snapshots);
+        }
+        catch (UnreadableException | ClassCastException e) {
+            e.printStackTrace();
+        }
     }
 }
