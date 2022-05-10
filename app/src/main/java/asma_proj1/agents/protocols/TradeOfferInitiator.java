@@ -94,7 +94,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
             StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer (value = " +
                 StringUtils.colorize(String.valueOf(bestValue), StringUtils.CYAN) +
                 "):\n" + bestOffer);
-            
+
             cardOwner.collectionLock.unlock();
         }
     }
@@ -104,5 +104,10 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         cardOwner.collectionLock.lock();
         cardOwner.addCardsToCollection(bestOffer.give);
         cardOwner.collectionLock.unlock();
+    }
+
+    @Override
+    protected void handleFailure(ACLMessage failure) {
+        StringUtils.logError("Trade offer failure: " + failure.getContent());
     }
 }
