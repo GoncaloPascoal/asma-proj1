@@ -1,12 +1,17 @@
 package asma_proj1.agents;
 
-import java.util.Comparator;
+import java.util.Map;
 import java.util.List;
+import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.Comparator;
+import java.util.Collections;
 
 import jade.core.behaviours.TickerBehaviour;
 
 import asma_proj1.card.Card;
+import asma_proj1.card.CardSet;
+import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.data.TradeOfferData;
@@ -21,6 +26,7 @@ public class CompetitivePlayer extends CardOwner {
     protected void setup() {
         super.setup();
         addBehaviour(new CompetitiveBehaviour(this));
+        System.out.println("Added competitive behaviour!");
     }
 
     @Override
@@ -67,23 +73,57 @@ public class CompetitivePlayer extends CardOwner {
             this.competitive = competitive;
         }
 
+        private int evalCardSets() {
+            double setPotential;
+            Map<Integer, Double> setPotentials = new HashMap<>();
+
+            // for each card set
+            for (int i = 0; i < cardSets.size(); i++) {
+                setPotential = 0;
+
+                // add each not owned card's power to get total potential power of set
+                for (Card c : cardSets.get(i).getCards()) {
+                    if (!collection.containsKey(c)) setPotential += c.getPower();
+                }
+                setPotentials.put(i, setPotential);
+            }
+            
+            // for debugging
+            if (true) {
+                for (Map.Entry<Integer, Double> entry : setPotentials.entrySet()) {
+                    System.out.println("Idx #" + entry.getKey() + " | value: " + entry.getValue());
+                }    
+            }
+            
+            System.out.println("Best set to get: " +
+                Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)).getKey() +
+                " with potential power: " + 
+                Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)));
+
+            return Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)).getKey();
+        }
+
         @Override
         protected void onTick() {
 
-            if (marketplace == null) {
-                findMarketplace();
-            }
-            else {
-                addBehaviour(new SnapshotInitiator(competitive, marketplace));
-            }
+            // if (marketplace == null) {
+            //     findMarketplace();
+            // }
+            // else {
+            //     addBehaviour(new SnapshotInitiator(competitive, marketplace));
+            // }
 
 
             // Look for possible trades
+            if (!collection.isEmpty()) {
 
-            // Purchase a pack of the set with the highest power not owned cards
+            }
 
-            // purchasePack(cardSets.get(maxIdx));
-
+            // Purchase a pack of the set with the highest power but not owned cards
+            if (!cardSets.isEmpty()) {
+                purchasePack(cardSets.get(evalCardSets()));
+            }
+            
         }
     }
 }
