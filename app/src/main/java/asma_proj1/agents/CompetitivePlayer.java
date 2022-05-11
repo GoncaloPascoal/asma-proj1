@@ -49,7 +49,13 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     public double evaluateTradeOffer(TradeOffer offer) {
-        return 0;
+        double value = 0;
+        
+        for (Card card : offer.give) {
+            value += card.getPower();
+        }
+        
+        return value;
     }
 
     private class CompetitiveBehaviour extends TickerBehaviour {
@@ -72,11 +78,11 @@ public class CompetitivePlayer extends CardOwner {
             }
 
 
+            // Look for possible trades
 
+            // Purchase a pack of the set with the highest power not owned cards
 
-            // Purchase a pack of the set with the highest power cards
-
-            purchasePack(cardSets.get(maxIdx));
+            // purchasePack(cardSets.get(maxIdx));
 
         }
     }
