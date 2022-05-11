@@ -20,6 +20,7 @@ import asma_proj1.card.Card;
 public class Marketplace extends BaseAgent {
     public static final String SERVICE_TYPE = "marketplace",
         SNAPSHOT_PROTOCOL = "snapshot",
+        BUY_CARDS_PROTOCOL = "buy-cards",
         SELL_CARDS_PROTOCOL = "sell-cards";
 
     public static final int MIN_SELLER_FEE = 3;
@@ -61,6 +62,14 @@ public class Marketplace extends BaseAgent {
             totalFee += transaction.priceMap.get(card);
         }
         return totalFee;
+    }
+
+    public static int calculateBuyerPrice(Transaction transaction) {
+        int maxPrice = 0;
+        for (Card card : transaction.cards) {
+            maxPrice += transaction.priceMap.get(card) * (1 + BUYER_FEE);
+        }
+        return maxPrice;
     }
 
     public void addListing(Card card, Listing listing) {
