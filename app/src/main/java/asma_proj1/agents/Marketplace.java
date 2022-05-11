@@ -13,8 +13,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SubscriptionResponder.Subscription;
-
+import asma_proj1.agents.protocols.BuyCardsResponder;
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
+import asma_proj1.agents.protocols.SellCardsResponder;
 import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.Transaction;
@@ -53,6 +54,8 @@ public class Marketplace extends BaseAgent {
 
         addBehaviour(new MarketplaceSubscriptionResponder(this));
         addBehaviour(new SnapshotResponder(this));
+        addBehaviour(new BuyCardsResponder(this));
+        addBehaviour(new SellCardsResponder(this));
     }
 
     public static int calculateSellerFee(int price) {
