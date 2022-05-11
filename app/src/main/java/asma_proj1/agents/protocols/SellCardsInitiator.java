@@ -6,6 +6,7 @@ import jade.proto.SimpleAchieveREInitiator;
 
 import java.io.IOException;
 
+import asma_proj1.agents.BaseAgent;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Transaction;
@@ -26,10 +27,10 @@ public class SellCardsInitiator extends SimpleAchieveREInitiator {
     @Override
     protected ACLMessage prepareRequest(ACLMessage msg) {
         msg.setProtocol(Marketplace.SELL_CARDS_PROTOCOL);
+        int totalFee = Marketplace.calculateSellerFee(transaction);
 
         cardOwner.collectionLock.lock();
         try {
-            int totalFee = Marketplace.calculateSellerFee(transaction);
             if (!cardOwner.changeCapital(-totalFee)) {
                 StringUtils.logAgentMessage(cardOwner,
                     StringUtils.colorize("Couldn't pay seller's fee to marketplace.", StringUtils.RED));
@@ -47,6 +48,9 @@ public class SellCardsInitiator extends SimpleAchieveREInitiator {
         finally {
             cardOwner.collectionLock.unlock();
         }
+
+        StringUtils.logAgentMessage(cardOwner, "🧾 Listed " + transaction.cards.size() +
+            " cards in marketplace. Seller fees: " + BaseAgent.changeCapitalMessage(-totalFee));
 
         return msg;
     }

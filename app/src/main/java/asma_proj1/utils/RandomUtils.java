@@ -17,6 +17,10 @@ public final class RandomUtils {
         return min + random.nextInt(max - min + 1);
     }
 
+    public static double doubleRangeInclusive(double min, double max) {
+        return min + random.nextDouble() * (max - min);
+    }
+
     public static double normalDistribution() {
         return normalDistribution(0, 1);
     }

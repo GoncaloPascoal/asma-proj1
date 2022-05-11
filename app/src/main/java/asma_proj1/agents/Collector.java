@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
@@ -16,10 +17,12 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import asma_proj1.agents.protocols.SellCardsInitiator;
 import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.TradeOfferInitiator;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
+import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
@@ -176,6 +179,25 @@ public class Collector extends CardOwner {
             }
 
             if (!collection.isEmpty()) {
+                // Sell and buy cards on the marketplace
+                List<Card> markeplaceCards = unwantedCards();
+                int numMarketplace = Math.min(
+                    markeplaceCards.size(),
+                    RandomUtils.intRangeInclusive(0, 8)
+                );
+
+                if (numMarketplace > 0) {
+                    Collections.shuffle(markeplaceCards);
+                    markeplaceCards = markeplaceCards.subList(0, numMarketplace);
+
+                    List<Integer> prices = markeplaceCards.stream().map(
+                        c -> evaluateSellPrice(c)
+                    ).collect(Collectors.toList());
+
+                    Transaction transaction = new Transaction(markeplaceCards, prices);
+                    addBehaviour(new SellCardsInitiator(collector, marketplace, transaction));
+                }
+
                 // Look for possible trades
                 Set<AID> agents = new HashSet<>();
 

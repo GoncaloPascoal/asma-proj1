@@ -12,6 +12,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
+
 import jade.proto.SubscriptionResponder.Subscription;
 import asma_proj1.agents.protocols.BuyCardsResponder;
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;

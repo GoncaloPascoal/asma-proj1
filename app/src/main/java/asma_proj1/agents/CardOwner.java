@@ -24,12 +24,18 @@ import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.card.Rarity;
 import asma_proj1.utils.ConversionUtils;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
 public abstract class CardOwner extends BaseAgent {
     public static final String DF_HAVE_TYPE = "have";
+    protected static final Map<Rarity, Integer> basePrice = Map.of(
+        Rarity.COMMON, 15,
+        Rarity.UNCOMMON, 50,
+        Rarity.RARE, 200
+    );
 
     protected final Map<Card, Integer> collection = new HashMap<>();
     private final Map<Integer, Integer> cardsForTrade = new HashMap<>();
@@ -200,6 +206,12 @@ public abstract class CardOwner extends BaseAgent {
         catch (FIPAException e) {
             e.printStackTrace();
         }
+    }
+
+    protected int evaluateSellPrice(Card card) {
+        // TODO: improve
+        return (int) ((double) basePrice.get(card.getRarity()) *
+            RandomUtils.doubleRangeInclusive(0.9, 1.1));
     }
 
     private class ReceiveCapital extends TickerBehaviour {
