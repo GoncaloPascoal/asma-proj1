@@ -52,7 +52,7 @@ public abstract class BaseAgent extends Agent {
         return false;
     }
 
-    protected static String changeCapitalMessage(int delta) {
+    public static String changeCapitalMessage(int delta) {
         String color = StringUtils.GREEN;
         if (delta < 0) color = StringUtils.RED;
 

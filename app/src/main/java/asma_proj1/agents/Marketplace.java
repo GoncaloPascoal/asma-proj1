@@ -1,6 +1,8 @@
 package asma_proj1.agents;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -9,6 +11,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
 import jade.proto.SubscriptionResponder.Subscription;
 
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
@@ -58,23 +61,29 @@ public class Marketplace extends BaseAgent {
 
     public static int calculateSellerFee(Transaction transaction) {
         int totalFee = 0;
-        for (Card card : transaction.cards) {
-            totalFee += transaction.priceMap.get(card);
+        for (Integer price : transaction.prices) {
+            totalFee += calculateSellerFee(price);
         }
         return totalFee;
     }
 
+    public static int calculateBuyerPrice(int price) {
+        return (int) ((double) price * (1.0 + BUYER_FEE));
+    }
+
     public static int calculateBuyerPrice(Transaction transaction) {
-        int maxPrice = 0;
-        for (Card card : transaction.cards) {
-            maxPrice += transaction.priceMap.get(card) * (1 + BUYER_FEE);
+        int totalPrice = 0;
+        for (Integer price : transaction.prices) {
+            totalPrice += calculateBuyerPrice(price);
         }
-        return maxPrice;
+        return totalPrice;
     }
 
     public void addListing(Card card, Listing listing) {
-        listings.putIfAbsent(card, new TreeSet<>());
-        listings.get(card).add(listing);
+        synchronized (listings) {
+            listings.putIfAbsent(card, new TreeSet<>());
+            listings.get(card).add(listing);
+        }
     }
 
     public HashMap<Card, Snapshot> generateSnapshot() {
@@ -95,5 +104,58 @@ public class Marketplace extends BaseAgent {
 
     public void addSubscription(AID aid, Subscription subscription) {
         subscriptions.put(aid, subscription);
+    }
+
+    public Transaction attemptPurchase(Transaction transaction) {
+        List<Card> actualCards = new ArrayList<>();
+        List<Integer> actualPrices = new ArrayList<>();
+        Map<AID, Integer> sellerIncome = new HashMap<>();
+
+        synchronized (listings) {
+            for (int i = 0; i < transaction.cards.size(); ++i) {
+                Card card = transaction.cards.get(i);
+                Integer maxPrice = transaction.prices.get(i);
+                Listing listing = attemptCardPurchase(card, maxPrice);
+
+                if (listing != null) {
+                    actualCards.add(card);
+                    actualPrices.add(calculateBuyerPrice(listing.price));
+                    sellerIncome.compute(listing.aid, (k, v) -> v == null ? listing.price : v + listing.price);
+                }
+            }
+        }
+
+        int marketplaceIncome = actualPrices.stream().mapToInt(v -> v).sum() -
+            sellerIncome.values().stream().mapToInt(v -> v).sum();
+        changeCapital(marketplaceIncome);
+
+        for (Map.Entry<AID, Integer> entry : sellerIncome.entrySet()) {
+            Subscription subscription = subscriptions.get(entry.getKey());
+
+            if (subscription != null) {
+                ACLMessage incomeMsg = new ACLMessage(ACLMessage.INFORM);
+                incomeMsg.addReceiver(entry.getKey());
+                incomeMsg.setContent(entry.getValue().toString());
+                subscription.notify(incomeMsg);
+            }
+        }
+
+        return new Transaction(actualCards, actualPrices);
+    }
+
+    private Listing attemptCardPurchase(Card card, int maxPrice) {
+        if (!listings.containsKey(card)) return null;
+
+        Listing first = listings.get(card).first();
+        if (first.price > maxPrice) {
+            return null;
+        }
+
+        listings.get(card).pollFirst();
+        if (listings.get(card).isEmpty()) {
+            listings.remove(card);
+        }
+
+        return first;
     }
 }

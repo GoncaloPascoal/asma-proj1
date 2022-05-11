@@ -33,9 +33,10 @@ public class SellCardsResponder extends SimpleAchieveREResponder {
         try {
             Transaction transaction = (Transaction) request.getContentObject();
 
-            for (Card card : transaction.cards) {
-                marketplace.addListing(card,
-                    new Listing(seller, transaction.priceMap.get(card)));
+            for (int i = 0; i < transaction.cards.size(); ++i) {
+                Card card = transaction.cards.get(i);
+                Integer price = transaction.prices.get(i);
+                marketplace.addListing(card, new Listing(seller, price));
             }
 
             int totalFee = Marketplace.calculateSellerFee(transaction);

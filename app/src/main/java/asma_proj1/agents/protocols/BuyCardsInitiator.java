@@ -6,10 +6,11 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREInitiator;
-
+import asma_proj1.agents.BaseAgent;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Transaction;
+import asma_proj1.utils.StringUtils;
 
 public class BuyCardsInitiator extends SimpleAchieveREInitiator {
     private final CardOwner cardOwner;
@@ -47,6 +48,11 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
             int paidPrice = Marketplace.calculateBuyerPrice(transaction),
                 realPrice = Marketplace.calculateBuyerPrice(realTransaction);
             cardOwner.changeCapital(realPrice - paidPrice);
+
+            if (!realTransaction.cards.isEmpty()) {
+                StringUtils.logAgentMessage(cardOwner, "📉 Bought cards from marketplace: " +
+                StringUtils.cardIds(realTransaction.cards) + " " + BaseAgent.changeCapitalMessage(-realPrice));
+            }
         }
         catch (UnreadableException | ClassCastException e) {
             e.printStackTrace();
