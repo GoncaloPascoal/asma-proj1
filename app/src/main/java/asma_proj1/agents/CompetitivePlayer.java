@@ -13,10 +13,7 @@ import java.util.Collections;
 import jade.core.behaviours.TickerBehaviour;
 
 import asma_proj1.card.Card;
-import asma_proj1.card.CardSet;
-import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
-import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 
 
