@@ -27,15 +27,19 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
     @Override
     protected ACLMessage prepareRequest(ACLMessage msg) {
         msg.setProtocol(Marketplace.BUY_CARDS_PROTOCOL);
+        msg.addReceiver(marketplace);
+        try {
+            msg.setContentObject(transaction);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-        if (cardOwner.changeCapital(-Marketplace.calculateBuyerPrice(transaction))) {
-            msg.addReceiver(marketplace);
-            try {
-                msg.setContentObject(transaction);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (!cardOwner.changeCapital(-Marketplace.calculateBuyerPrice(transaction))) {
+            StringUtils.logAgentError(cardOwner,
+                "Couldn't pay specified maximum price for marketplace cards.");
+            return null;
         }
 
         return msg;
@@ -50,8 +54,11 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
             cardOwner.changeCapital(realPrice - paidPrice);
 
             if (!realTransaction.cards.isEmpty()) {
-                StringUtils.logAgentMessage(cardOwner, "📉 Bought cards from marketplace: " +
-                StringUtils.cardIds(realTransaction.cards) + " " + BaseAgent.changeCapitalMessage(-realPrice));
+                cardOwner.addCardsToCollection(realTransaction.cards);
+
+                StringUtils.logAgentMessage(cardOwner, "📉 Bought " +
+                    realTransaction.cards.size() + " cards from marketplace: " +
+                    BaseAgent.changeCapitalMessage(-realPrice));
             }
         }
         catch (UnreadableException | ClassCastException e) {

@@ -24,4 +24,8 @@ public class Transaction implements Serializable {
         this.cards = cards;
         this.prices = prices;
     }
+
+    public boolean isEmpty() {
+        return cards.isEmpty();
+    }
 }

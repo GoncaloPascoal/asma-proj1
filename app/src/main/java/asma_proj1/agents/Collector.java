@@ -17,9 +17,11 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import asma_proj1.agents.protocols.BuyCardsInitiator;
 import asma_proj1.agents.protocols.SellCardsInitiator;
 import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.TradeOfferInitiator;
+import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.agents.protocols.data.Transaction;
@@ -158,6 +160,36 @@ public class Collector extends CardOwner {
         return value;
     }
 
+    public Transaction generateBuyTransaction() {
+        List<Card> cards = new ArrayList<>();
+        List<Integer> prices = new ArrayList<>();
+        int totalPrice = 0;
+
+        for (Card card : desiredNotOwned) {
+            // TODO: Create new constants for probability / ratios
+            if (RandomUtils.random.nextDouble() <= 0.25) {
+                int maxPrice;
+                if (latestSnapshot.containsKey(card)) {
+                    Snapshot snapshot = latestSnapshot.get(card);
+                    maxPrice = (int) (snapshot.minPrice *
+                        RandomUtils.doubleRangeInclusive(1.0, 1.4));
+                }
+                else {
+                    maxPrice = (int) ((double) rarityValueMap.get(card.getRarity()) *
+                        RandomUtils.doubleRangeInclusive(1.0, 1.2));
+                }
+
+                if (totalPrice + maxPrice <= getCapital()) {
+                    totalPrice += maxPrice;
+                    cards.add(card);
+                    prices.add(maxPrice);
+                }
+            }
+        }
+
+        return new Transaction(cards, prices);
+    }
+
     private class CollectorBehaviour extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 15;
         private final Collector collector;
@@ -178,27 +210,40 @@ public class Collector extends CardOwner {
                 addBehaviour(new SnapshotInitiator(collector, marketplace));
             }
 
+            block(1000);
+
             if (!collection.isEmpty()) {
-                // Sell and buy cards on the marketplace
-                List<Card> markeplaceCards = unwantedCards();
-                int numMarketplace = Math.min(
-                    markeplaceCards.size(),
-                    RandomUtils.intRangeInclusive(0, 8)
-                );
+                if (marketplace != null) {
+                    // Sell and buy cards on the marketplace
+                    List<Card> markeplaceCards = unwantedCards();
+                    int numMarketplace = Math.min(
+                        markeplaceCards.size(),
+                        RandomUtils.intRangeInclusive(0, 8)
+                    );
+    
+                    if (numMarketplace > 0) {
+                        Collections.shuffle(markeplaceCards);
+                        markeplaceCards = new ArrayList<>(markeplaceCards.subList(0, numMarketplace));
+    
+                        List<Integer> prices = markeplaceCards.stream().map(
+                            c -> evaluateSellPrice(c)
+                        ).collect(Collectors.toList());
+    
+                        // TODO: handle capital / card changes beforehand?
+                        Transaction sellTransaction = new Transaction(markeplaceCards, prices);
+                        addBehaviour(new SellCardsInitiator(collector, marketplace, sellTransaction));
+                    }
+    
+                    block(1000);
 
-                if (numMarketplace > 0) {
-                    Collections.shuffle(markeplaceCards);
-                    markeplaceCards = new ArrayList<>(markeplaceCards.subList(0, numMarketplace));
+                    // TODO: handle capital / card changes beforehand?
+                    Transaction buyTransaction = generateBuyTransaction();
+                    if (!buyTransaction.isEmpty()) {
+                        addBehaviour(new BuyCardsInitiator(collector, marketplace, buyTransaction));
+                    }
 
-                    List<Integer> prices = markeplaceCards.stream().map(
-                        c -> evaluateSellPrice(c)
-                    ).collect(Collectors.toList());
-
-                    Transaction transaction = new Transaction(markeplaceCards, prices);
-                    addBehaviour(new SellCardsInitiator(collector, marketplace, transaction));
+                    block(1000);
                 }
-
-                block(1000);
 
                 // Look for possible trades
                 Set<AID> agents = new HashSet<>();

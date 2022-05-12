@@ -216,7 +216,7 @@ public abstract class CardOwner extends BaseAgent {
             double multiplier = 1 / Math.min(0.85, Math.exp(0.0025 * snapshot.count));
             multiplier *= RandomUtils.doubleRangeInclusive(0.95, 1.05);
 
-            return (int) ((double) snapshot.averagePrice * multiplier);
+            return (int) (snapshot.averagePrice * multiplier);
         }
 
         return (int) ((double) basePrice.get(card.getRarity()) *
