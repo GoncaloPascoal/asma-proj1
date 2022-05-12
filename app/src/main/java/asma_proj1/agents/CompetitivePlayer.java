@@ -2,6 +2,7 @@ package asma_proj1.agents;
 
 import java.util.Set;
 import java.util.List;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.ArrayList;
@@ -11,15 +12,17 @@ import jade.core.AID;
 
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 
 public class CompetitivePlayer extends CardOwner {
-    boolean DEBUG = false;
     private static final int BEST_MAX_SIZE = 100;
-    private final TreeSet<Card> bestCards = new TreeSet<>(
-        Comparator.comparingDouble(c -> c.getPower())
+    private static final Comparator<Card> cardPowerComparator = Comparator.comparingDouble(
+        c -> c.getPower()
     );
+    private final TreeSet<Card> bestCards = new TreeSet<>(cardPowerComparator);
+
     private CardSet bestSet = null;
 
     private static double averagePower(CardSet set) {
@@ -47,15 +50,32 @@ public class CompetitivePlayer extends CardOwner {
      */
     @Override
     protected void handleNewCards(List<Card> cards) {
+        TreeSet<Card> wanted = new TreeSet<>(cardPowerComparator);
+        List<Card> unwanted = new ArrayList<>();
+
         for (Card card : cards) {
             if (!bestCards.contains(card) && (bestCards.size() < BEST_MAX_SIZE ||
                     card.getPower() > bestCards.first().getPower())) {
                 if (bestCards.size() == BEST_MAX_SIZE) {
-                    Card oldCard = bestCards.pollFirst();
-                    bestCards.add(oldCard);
-                    // TODO: list old card
+                    unwanted.add(bestCards.pollFirst());
                 }
+                wanted.add(card);
+                bestCards.add(card);
             }
+            else {
+                unwanted.add(card);
+            }
+        }
+
+        listCards(unwanted);
+
+        if (!wanted.isEmpty()) {
+            StringUtils.logAgentMessage(this, "🍀 Got " + wanted.size() + " more powerful cards. Card power range: " +
+                StringUtils.colorize("[" + bestCards.first().getPower() + ", " + bestCards.last().getPower() + "]", StringUtils.YELLOW));
+        }
+
+        if (!unwanted.isEmpty()) {
+            StringUtils.logAgentMessage(this, "📜 Listed " + unwanted.size() + " unwanted cards.");
         }
     }
 
@@ -67,8 +87,20 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     protected List<Card> unwantedCards() {
-        // TODO Auto-generated method stub
-        return new ArrayList<>();
+        List<Card> unwanted = new ArrayList<>();
+
+        for (Map.Entry<Card, Integer> entry : collection.entrySet()) {
+            Card card = entry.getKey();
+            int copies = entry.getValue();
+
+            if (bestCards.contains(card)) copies -= 1;
+
+            for (int i = 0; i < copies; ++i) {
+                unwanted.add(card);
+            }
+        }
+
+        return unwanted;
     }
 
     @Override
