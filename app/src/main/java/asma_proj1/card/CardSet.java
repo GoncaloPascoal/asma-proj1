@@ -10,7 +10,7 @@ import java.util.Map;
 import asma_proj1.utils.RandomUtils;
 
 public class CardSet implements Serializable {
-    public static final int PACK_PRICE = 50, SET_SIZE = 125;
+    public static final int PACK_PRICE = 500, SET_SIZE = 125;
     private static final Map<Rarity, Integer> RARITY_COUNT = Map.of(
         Rarity.COMMON, 50,
         Rarity.UNCOMMON, 40,

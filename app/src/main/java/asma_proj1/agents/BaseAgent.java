@@ -56,7 +56,7 @@ public abstract class BaseAgent extends Agent {
         String color = StringUtils.GREEN;
         if (delta < 0) color = StringUtils.RED;
 
-        return StringUtils.colorize(String.valueOf(delta), color) + " 💵";
+        return StringUtils.colorize(String.format("%.2f 💵", (double) delta / 100), color);
     }
 
     protected void handleNewCardSet(CardSet set) {}

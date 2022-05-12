@@ -30,7 +30,7 @@ import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
 public class Collector extends CardOwner {
-    private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 2, MAX_NEW_CARDS = 15;
+    private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 5, MAX_NEW_CARDS = 15;
     private Set<Card> desiredCards = new HashSet<>(), desiredNotOwned = new HashSet<>();
 
     private static final Map<Rarity, Double> rarityValueMap = Map.of(
@@ -197,6 +197,8 @@ public class Collector extends CardOwner {
                     Transaction transaction = new Transaction(markeplaceCards, prices);
                     addBehaviour(new SellCardsInitiator(collector, marketplace, transaction));
                 }
+
+                block(1000);
 
                 // Look for possible trades
                 Set<AID> agents = new HashSet<>();

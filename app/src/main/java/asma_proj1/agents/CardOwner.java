@@ -91,7 +91,7 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     protected void receiveCapital() {
-        int capital = RandomUtils.intRangeInclusive(50, 100);
+        int capital = RandomUtils.intRangeInclusive(400, 900);
         changeCapital(capital);
         StringUtils.logAgentMessage(this, "Received periodic capital: " +
             changeCapitalMessage(capital));
@@ -225,7 +225,7 @@ public abstract class CardOwner extends BaseAgent {
 
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;
-        
+
         public ReceiveCapital(CardOwner cardOwner) {
             super(cardOwner, INTERVAL_SECONDS * 1000);
         }
