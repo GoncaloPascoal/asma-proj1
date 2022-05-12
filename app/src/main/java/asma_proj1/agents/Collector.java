@@ -9,18 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import jade.core.AID;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import asma_proj1.agents.protocols.BuyCardsInitiator;
-import asma_proj1.agents.protocols.SellCardsInitiator;
-import asma_proj1.agents.protocols.SnapshotInitiator;
-import asma_proj1.agents.protocols.TradeOfferInitiator;
+
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
@@ -42,9 +37,23 @@ public class Collector extends CardOwner {
     );
 
     @Override
-    protected void setup() {
-        super.setup();
-        addBehaviour(new CollectorBehaviour(this));
+    protected CardSet selectSet() {
+        // Purchase a pack of the set with the highest number of desired cards
+        Map<Integer, Integer> numDesired = new HashMap<>();
+
+        for (Card card : desiredCards) {
+            int setIdx = card.getId() / CardSet.SET_SIZE;
+            numDesired.compute(setIdx, (k, v) -> v == null ? 1 : v + 1);
+        }
+
+        int maxIdx = 0;
+        for (Map.Entry<Integer, Integer> entry : numDesired.entrySet()) {
+            if (entry.getValue() > numDesired.get(maxIdx)) {
+                maxIdx = entry.getKey();
+            }
+        }
+
+        return cardSets.get(maxIdx);
     }
 
     @Override
@@ -91,13 +100,12 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    public List<Card> selectCardsForTrade(List<Card> offered) {
-        Set<Card> unique = new HashSet<>(offered);
-        unique.retainAll(desiredNotOwned);
-        return new ArrayList<>(unique);
+    protected Set<Card> wantedCards() {
+        return desiredNotOwned;
     }
 
-    private List<Card> unwantedCards() {
+    @Override
+    protected List<Card> unwantedCards() {
         List<Card> unwanted = new ArrayList<>();
 
         for (Map.Entry<Card, Integer> entry : collection.entrySet()) {
@@ -110,6 +118,40 @@ public class Collector extends CardOwner {
         }
 
         return unwanted;
+    }
+
+    @Override
+    protected Set<AID> selectAgentsForTrade() {
+        Set<AID> agents = new HashSet<>();
+
+        for (Card card : desiredNotOwned) {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType(CardOwner.DF_HAVE_TYPE);
+            sd.setName(String.valueOf(card.getId()));
+            template.addServices(sd);
+
+            try {
+                DFAgentDescription[] results = DFService.search(this, template);
+                for (DFAgentDescription result : results) {
+                    if (result.getName() != getAID()) {
+                        agents.add(result.getName());
+                    }
+                }
+            }
+            catch (FIPAException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return agents;
+    }
+
+    @Override
+    public List<Card> selectCardsForTrade(List<Card> offered) {
+        Set<Card> unique = new HashSet<>(offered);
+        unique.retainAll(desiredNotOwned);
+        return new ArrayList<>(unique);
     }
     
     @Override
@@ -160,7 +202,8 @@ public class Collector extends CardOwner {
         return value;
     }
 
-    public Transaction generateBuyTransaction() {
+    @Override
+    public Transaction selectCardsToBuy() {
         List<Card> cards = new ArrayList<>();
         List<Integer> prices = new ArrayList<>();
         int totalPrice = 0;
@@ -188,114 +231,5 @@ public class Collector extends CardOwner {
         }
 
         return new Transaction(cards, prices);
-    }
-
-    private class CollectorBehaviour extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 15;
-        private final Collector collector;
-
-        public CollectorBehaviour(Collector collector) {
-            super(collector, INTERVAL_SECONDS * 1000);
-            this.collector = collector;
-        }
-
-        @Override
-        protected void onTick() {
-            if (desiredCards.isEmpty()) return;
-
-            if (marketplace == null) {
-                findMarketplace();
-            }
-            else {
-                addBehaviour(new SnapshotInitiator(collector, marketplace));
-            }
-
-            block(1000);
-
-            if (!collection.isEmpty()) {
-                if (marketplace != null) {
-                    // Sell and buy cards on the marketplace
-                    List<Card> markeplaceCards = unwantedCards();
-                    int numMarketplace = Math.min(
-                        markeplaceCards.size(),
-                        RandomUtils.intRangeInclusive(0, 8)
-                    );
-    
-                    if (numMarketplace > 0) {
-                        Collections.shuffle(markeplaceCards);
-                        markeplaceCards = new ArrayList<>(markeplaceCards.subList(0, numMarketplace));
-    
-                        List<Integer> prices = markeplaceCards.stream().map(
-                            c -> evaluateSellPrice(c)
-                        ).collect(Collectors.toList());
-    
-                        // TODO: handle capital / card changes beforehand?
-                        Transaction sellTransaction = new Transaction(markeplaceCards, prices);
-                        addBehaviour(new SellCardsInitiator(collector, marketplace, sellTransaction));
-                    }
-    
-                    block(1000);
-
-                    // TODO: handle capital / card changes beforehand?
-                    Transaction buyTransaction = generateBuyTransaction();
-                    if (!buyTransaction.isEmpty()) {
-                        addBehaviour(new BuyCardsInitiator(collector, marketplace, buyTransaction));
-                    }
-
-                    block(1000);
-                }
-
-                // Look for possible trades
-                Set<AID> agents = new HashSet<>();
-
-                for (Card card : desiredNotOwned) {
-                    DFAgentDescription template = new DFAgentDescription();
-                    ServiceDescription sd = new ServiceDescription();
-                    sd.setType(CardOwner.DF_HAVE_TYPE);
-                    sd.setName(String.valueOf(card.getId()));
-                    template.addServices(sd);
-
-                    try {
-                        DFAgentDescription[] results = DFService.search(myAgent, template);
-                        for (DFAgentDescription result : results) {
-                            if (result.getName() != getAID()) {
-                                agents.add(result.getName());
-                            }
-                        }
-                    }
-                    catch (FIPAException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (!agents.isEmpty()) {
-                    StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
-                    " possible agents to trade with.");
-
-                    List<Card> offered = unwantedCards();
-                    addBehaviour(new TradeOfferInitiator(collector,
-                        new TradeOfferData(desiredNotOwned, offered), agents));
-                }
-            }
-
-            // Purchase a pack of the set with the highest number of desired cards
-            if (!cardSets.isEmpty()) {
-                Map<Integer, Integer> numDesired = new HashMap<>();
-
-                for (Card card : desiredCards) {
-                    int setIdx = card.getId() / CardSet.SET_SIZE;
-                    numDesired.compute(setIdx, (k, v) -> v == null ? 1 : v + 1);
-                }
-
-                int maxIdx = 0;
-                for (Map.Entry<Integer, Integer> entry : numDesired.entrySet()) {
-                    if (entry.getValue() > numDesired.get(maxIdx)) {
-                        maxIdx = entry.getKey();
-                    }
-                }
-
-                purchasePack(cardSets.get(maxIdx));
-            }
-        }
     }
 }
