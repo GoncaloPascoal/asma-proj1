@@ -82,7 +82,7 @@ public class CompetitivePlayer extends CardOwner {
 
         if (!wanted.isEmpty()) {
             StringUtils.logAgentMessage(this, "🍀 Got " + wanted.size() + " more powerful cards. Card power range: " +
-                StringUtils.colorize("[" + bestCards.first().getPower() + ", " + bestCards.last().getPower() + "]", StringUtils.YELLOW));
+                StringUtils.colorize(String.format("[%.3f, %.3f]", bestCards.first().getPower(), bestCards.last().getPower()), StringUtils.YELLOW));
         }
 
         if (!unwanted.isEmpty()) {

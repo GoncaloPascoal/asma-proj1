@@ -47,7 +47,7 @@ public class SellCardsInitiator extends SimpleAchieveREInitiator {
         }
 
         StringUtils.logAgentMessage(cardOwner, "🧾 Listed " + transaction.cards.size() +
-            " cards in marketplace. " + BaseAgent.changeCapitalMessage(-totalFee));
+            " cards in marketplace: " + BaseAgent.changeCapitalMessage(-totalFee));
 
         return msg;
     }

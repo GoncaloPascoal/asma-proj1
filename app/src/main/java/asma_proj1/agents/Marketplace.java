@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import jade.core.AID;
 import jade.domain.DFService;
@@ -150,16 +152,23 @@ public class Marketplace extends BaseAgent {
     private Listing attemptCardPurchase(Card card, int maxPrice) {
         if (!listings.containsKey(card)) return null;
 
-        Listing first = listings.get(card).first();
-        if (calculateBuyerPrice(first.price) > maxPrice) {
+        Stream<Listing> validListings = listings.get(card).stream().filter(l -> l.aid != null);
+        try {
+            Listing first = validListings.findFirst().get();
+
+            if (calculateBuyerPrice(first.price) > maxPrice) {
+                return null;
+            }
+
+            listings.get(card).remove(first);
+            if (listings.get(card).isEmpty()) {
+                listings.remove(card);
+            }
+
+            return first;
+        }
+        catch (NoSuchElementException e) {
             return null;
         }
-
-        listings.get(card).pollFirst();
-        if (listings.get(card).isEmpty()) {
-            listings.remove(card);
-        }
-
-        return first;
     }
 }
