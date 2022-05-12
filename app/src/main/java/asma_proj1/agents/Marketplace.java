@@ -151,7 +151,7 @@ public class Marketplace extends BaseAgent {
         if (!listings.containsKey(card)) return null;
 
         Listing first = listings.get(card).first();
-        if (first.price > maxPrice) {
+        if (calculateBuyerPrice(first.price) > maxPrice) {
             return null;
         }
 

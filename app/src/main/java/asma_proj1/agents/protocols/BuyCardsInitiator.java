@@ -36,7 +36,7 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
             return null;
         }
 
-        if (!cardOwner.changeCapital(-Marketplace.calculateBuyerPrice(transaction))) {
+        if (!cardOwner.changeCapital(-transaction.totalPrice())) {
             StringUtils.logAgentError(cardOwner,
                 "Couldn't pay specified maximum price for marketplace cards.");
             return null;
@@ -49,14 +49,13 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
     protected void handleInform(ACLMessage msg) {
         try {
             Transaction realTransaction = (Transaction) msg.getContentObject();
-            int paidPrice = Marketplace.calculateBuyerPrice(transaction),
-                realPrice = Marketplace.calculateBuyerPrice(realTransaction);
+            int paidPrice = transaction.totalPrice(), realPrice = realTransaction.totalPrice();
             cardOwner.changeCapital(realPrice - paidPrice);
 
             if (!realTransaction.cards.isEmpty()) {
                 cardOwner.addCardsToCollection(realTransaction.cards);
 
-                StringUtils.logAgentMessage(cardOwner, "📉 Bought " +
+                StringUtils.logAgentMessage(cardOwner, "🛒 Bought " +
                     realTransaction.cards.size() + " cards from marketplace: " +
                     BaseAgent.changeCapitalMessage(-realPrice));
             }

@@ -28,4 +28,8 @@ public class Transaction implements Serializable {
     public boolean isEmpty() {
         return cards.isEmpty();
     }
+
+    public int totalPrice() {
+        return prices.stream().mapToInt(v -> v).sum();
+    }
 }
