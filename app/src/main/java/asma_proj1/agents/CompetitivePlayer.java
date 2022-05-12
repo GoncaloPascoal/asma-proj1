@@ -1,9 +1,12 @@
 package asma_proj1.agents;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
 
@@ -16,7 +19,9 @@ import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.SnapshotInitiator;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 
+
 public class CompetitivePlayer extends CardOwner {
+    boolean DEBUG = false;
     private static final int BEST_MAX_SIZE = 100;
     private final TreeSet<Card> bestCards = new TreeSet<>(
         Comparator.comparingDouble(c -> c.getPower())
@@ -29,6 +34,10 @@ public class CompetitivePlayer extends CardOwner {
         System.out.println("Added competitive behaviour!");
     }
 
+    
+    /** 
+     * @param cards List of newly acquired cards
+     */
     @Override
     protected void handleNewCards(List<Card> cards) {
         for (Card card : cards) {
@@ -43,16 +52,51 @@ public class CompetitivePlayer extends CardOwner {
         }
     }
 
+    /** 
+     * @param offered
+     * @return List<Card> cards that the agent is willing to give in exchange for others in a trade 
+     */
     @Override
     public List<Card> selectCardsForTrade(List<Card> offered) {
-        return offered;
+        Set<Card> unique = new HashSet<>(offered);
+        // retainAll -> removes from 1st all elements that aren't in 2nd
+        // removeAll -> removes from 1st all element that are in the 2nd
+        unique.removeAll(bestCards);
+        return new ArrayList<>(unique);
     }
 
+    /***
+     * 
+     * @return get list of cards that the agent is willing to get rid off
+     */
+    private List<Card> disposableCards() {
+        List<Card> disposable = new ArrayList<>();
+
+        // TODO what is considered disposable? not in bestCards or under avg power?
+
+        return disposable;
+    }
+    
+    /** 
+     * @param data
+     * @return TradeOffer
+     */
     @Override
     public TradeOffer generateTradeOffer(TradeOfferData data) {
-        return null;
+        if (data.offered.isEmpty()) return null;
+        List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
+        List<Card> canGive = disposableCards();
+
+        // TODO
+
+        return new TradeOffer(give, receive);
     }
 
+    
+    /** 
+     * @param offer trade offer received
+     * @return double value for the agent of the received offer 
+     */
     @Override
     public double evaluateTradeOffer(TradeOffer offer) {
         double value = 0;
@@ -89,16 +133,16 @@ public class CompetitivePlayer extends CardOwner {
             }
             
             // for debugging
-            if (true) {
+            if (DEBUG) {
                 for (Map.Entry<Integer, Double> entry : setPotentials.entrySet()) {
                     System.out.println("Idx #" + entry.getKey() + " | value: " + entry.getValue());
                 }    
-            }
-            
-            System.out.println("Best set to get: " +
+
+                System.out.println("Best set to get: " +
                 Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)).getKey() +
                 " with potential power: " + 
                 Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)));
+            }
 
             return Collections.max(setPotentials.entrySet(), Comparator.comparingDouble(Map.Entry::getValue)).getKey();
         }
@@ -116,6 +160,10 @@ public class CompetitivePlayer extends CardOwner {
 
             // Look for possible trades
             if (!collection.isEmpty()) {
+                // TODO
+                // how to access cards of other agents to check their power?
+
+
 
             }
 
