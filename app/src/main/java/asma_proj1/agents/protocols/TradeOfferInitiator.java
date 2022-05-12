@@ -110,6 +110,6 @@ public class TradeOfferInitiator extends ContractNetInitiator {
 
     @Override
     protected void handleFailure(ACLMessage failure) {
-        StringUtils.logError("Trade offer failure: " + failure.getContent());
+        StringUtils.logAgentError(cardOwner, "Trade offer failure: " + failure.getContent());
     }
 }

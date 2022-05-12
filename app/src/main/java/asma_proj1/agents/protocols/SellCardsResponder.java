@@ -1,6 +1,7 @@
 package asma_proj1.agents.protocols;
 
 import jade.core.AID;
+import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
@@ -26,9 +27,16 @@ public class SellCardsResponder extends SimpleAchieveREResponder {
 
     @Override
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-        AID seller = request.getSender();
         ACLMessage response = request.createReply();
         response.setPerformative(ACLMessage.AGREE);
+        return response;
+    }
+
+    @Override
+    protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
+        AID seller = request.getSender();
+        ACLMessage inform = request.createReply();
+        inform.setPerformative(ACLMessage.INFORM);
 
         try {
             Transaction transaction = (Transaction) request.getContentObject();
@@ -43,9 +51,10 @@ public class SellCardsResponder extends SimpleAchieveREResponder {
             marketplace.changeCapital(totalFee);
         }
         catch (UnreadableException | ClassCastException e) {
-            throw new NotUnderstoodException("Invalid content object.");
+            e.printStackTrace();
+            throw new FailureException("Invalid content object.");
         }
 
-        return response;
+        return inform;
     }
 }

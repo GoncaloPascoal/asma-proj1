@@ -27,18 +27,15 @@ public class SellCardsInitiator extends SimpleAchieveREInitiator {
     @Override
     protected ACLMessage prepareRequest(ACLMessage msg) {
         msg.setProtocol(Marketplace.SELL_CARDS_PROTOCOL);
+        msg.addReceiver(marketplace);
         int totalFee = Marketplace.calculateSellerFee(transaction);
 
         cardOwner.collectionLock.lock();
         try {
             if (!cardOwner.changeCapital(-totalFee)) {
-                StringUtils.logAgentMessage(cardOwner,
-                    StringUtils.colorize("Couldn't pay seller's fee to marketplace.", StringUtils.RED));
-                cardOwner.collectionLock.unlock();
-                return msg;
+                StringUtils.logAgentError(cardOwner, "Couldn't pay seller's fee to marketplace.");
+                return null;
             }
-
-            msg.addReceiver(marketplace);
             msg.setContentObject(transaction);
             cardOwner.removeCardsFromCollection(transaction.cards);
         }

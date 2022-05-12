@@ -188,7 +188,7 @@ public class Collector extends CardOwner {
 
                 if (numMarketplace > 0) {
                     Collections.shuffle(markeplaceCards);
-                    markeplaceCards = markeplaceCards.subList(0, numMarketplace);
+                    markeplaceCards = new ArrayList<>(markeplaceCards.subList(0, numMarketplace));
 
                     List<Integer> prices = markeplaceCards.stream().map(
                         c -> evaluateSellPrice(c)

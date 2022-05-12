@@ -209,7 +209,16 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     protected int evaluateSellPrice(Card card) {
-        // TODO: improve
+        if (latestSnapshot.containsKey(card)) {
+            Snapshot snapshot = latestSnapshot.get(card);
+            
+            // TODO: custom parameters depending on rarity
+            double multiplier = 1 / Math.min(0.85, Math.exp(0.0025 * snapshot.count));
+            multiplier *= RandomUtils.doubleRangeInclusive(0.95, 1.05);
+
+            return (int) ((double) snapshot.averagePrice * multiplier);
+        }
+
         return (int) ((double) basePrice.get(card.getRarity()) *
             RandomUtils.doubleRangeInclusive(0.9, 1.1));
     }

@@ -23,12 +23,12 @@ public final class StringUtils {
         return color + str + RESET;
     }
 
-    public static void logError(String str) {
-        System.err.println(colorize(str, RED));
-    }
-
     public static void logAgentMessage(Agent agent, String str) {
         System.out.println(colorize("Agent '" + agent.getLocalName() + "': ", BLUE) + str);
+    }
+
+    public static void logAgentError(Agent agent, String str) {
+        logAgentMessage(agent, StringUtils.colorize(str, RED));
     }
 
     public static List<String> cardIds(Collection<Card> cards) {
