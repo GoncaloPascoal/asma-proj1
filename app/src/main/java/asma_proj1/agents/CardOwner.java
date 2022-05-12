@@ -1,13 +1,16 @@
 package asma_proj1.agents;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import jade.core.AID;
 import jade.core.behaviours.TickerBehaviour;
@@ -17,11 +20,16 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+import asma_proj1.agents.protocols.BuyCardsInitiator;
 import asma_proj1.agents.protocols.MarketplaceSubscriptionInitiator;
+import asma_proj1.agents.protocols.SellCardsInitiator;
+import asma_proj1.agents.protocols.SnapshotInitiator;
+import asma_proj1.agents.protocols.TradeOfferInitiator;
 import asma_proj1.agents.protocols.TradeOfferResponder;
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
+import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
@@ -63,9 +71,16 @@ public abstract class CardOwner extends BaseAgent {
         addBehaviour(new ReceiveCapital(this));
 
         findMarketplace();
+        addBehaviour(new CardOwnerBehaviour(this));
     }
 
+    protected abstract CardSet selectSet();
     protected abstract void handleNewCards(List<Card> cards);
+
+    protected abstract Set<Card> wantedCards();
+    protected abstract List<Card> unwantedCards();
+
+    protected abstract Set<AID> selectAgentsForTrade();
     public abstract List<Card> selectCardsForTrade(List<Card> offered);
     public abstract TradeOffer generateTradeOffer(TradeOfferData data);
     public abstract double evaluateTradeOffer(TradeOffer offer);
@@ -208,6 +223,32 @@ public abstract class CardOwner extends BaseAgent {
         }
     }
 
+    protected Transaction selectCardsToBuy() {
+        return null;
+    }
+
+    protected Transaction selectCardsToSell() {
+        Transaction transaction = null;
+        List<Card> cards = unwantedCards();
+        int numMarketplace = Math.min(
+            cards.size(),
+            RandomUtils.intRangeInclusive(0, 8)
+        );
+
+        if (numMarketplace > 0) {
+            Collections.shuffle(cards);
+            cards = new ArrayList<>(cards.subList(0, numMarketplace));
+
+            List<Integer> prices = cards.stream().map(
+                c -> evaluateSellPrice(c)
+            ).collect(Collectors.toList());
+
+            transaction = new Transaction(cards, prices);
+        }
+
+        return transaction;
+    }
+
     protected int evaluateSellPrice(Card card) {
         if (latestSnapshot.containsKey(card)) {
             Snapshot snapshot = latestSnapshot.get(card);
@@ -233,6 +274,71 @@ public abstract class CardOwner extends BaseAgent {
         @Override
         protected void onTick() {
             receiveCapital();
+        }
+    }
+
+    private class CardOwnerBehaviour extends TickerBehaviour {
+        private static final int INTERVAL_SECONDS = 15;
+        private final CardOwner cardOwner;
+
+        public CardOwnerBehaviour(CardOwner cardOwner) {
+            super(cardOwner, INTERVAL_SECONDS * 1000);
+            this.cardOwner = cardOwner;
+        }
+
+        @Override
+        protected void onTick() {
+            if (marketplace == null) {
+                findMarketplace();
+            }
+            else {
+                addBehaviour(new SnapshotInitiator(cardOwner, marketplace));
+            }
+
+            block(1000);
+
+            // TODO: apply marketplace buy / sell effects before adding behaviour
+
+            // Buying in marketplace
+            if (marketplace != null) {
+                Transaction transaction = selectCardsToBuy();
+                if (transaction != null && !transaction.isEmpty()) {
+                    addBehaviour(new BuyCardsInitiator(cardOwner, marketplace, transaction));
+                    block(1000);
+                }
+            }
+
+            if (!collection.isEmpty()) {
+                // Selling in marketplace
+                if (marketplace != null) {
+                    Transaction transaction = selectCardsToSell();
+                    if (transaction != null && !transaction.isEmpty()) {
+                        addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
+                        block(1000);
+                    }
+                }
+
+                // Trading
+                Set<AID> agents = selectAgentsForTrade();
+                if (!agents.isEmpty()) {
+                    List<Card> offered = unwantedCards();
+    
+                    if (!offered.isEmpty()) {
+                        StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
+                        " possible agents to trade with.");
+    
+                        addBehaviour(new TradeOfferInitiator(cardOwner,
+                            new TradeOfferData(wantedCards(), offered), agents));
+                    }
+                }
+            }
+
+            if (!cardSets.isEmpty()) {
+                CardSet set = selectSet();
+                if (set != null) {
+                    purchasePack(set);
+                }
+            }
         }
     }
 }
