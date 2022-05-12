@@ -21,7 +21,8 @@ public class CompetitivePlayer extends CardOwner {
     private static final Comparator<Card> cardPowerComparator = Comparator.comparingDouble(
         c -> c.getPower()
     );
-    private final TreeSet<Card> bestCards = new TreeSet<>(cardPowerComparator);
+    private final TreeSet<Card> bestCards = new TreeSet<>(cardPowerComparator),
+        potentiallyBetterCards = new TreeSet<>(cardPowerComparator);
 
     private CardSet bestSet = null;
 
@@ -38,6 +39,12 @@ public class CompetitivePlayer extends CardOwner {
         if (bestSet == null || averagePower(set) > averagePower(bestSet)) {
             bestSet = set;
         }
+
+        for (Card card : set.getCards()) {
+            if (bestCards.isEmpty() || card.getPower() >= bestCards.first().getPower()) {
+                potentiallyBetterCards.add(card);
+            }
+        }
     }
 
     @Override
@@ -45,9 +52,6 @@ public class CompetitivePlayer extends CardOwner {
         return bestSet;
     }
 
-    /** 
-     * @param cards List of newly acquired cards
-     */
     @Override
     protected void handleNewCards(List<Card> cards) {
         TreeSet<Card> wanted = new TreeSet<>(cardPowerComparator);
@@ -67,6 +71,13 @@ public class CompetitivePlayer extends CardOwner {
             }
         }
 
+        if (!bestCards.isEmpty()) {
+            while (!potentiallyBetterCards.isEmpty() &&
+                    potentiallyBetterCards.first().getPower() < bestCards.first().getPower()) {
+                potentiallyBetterCards.pollFirst();
+            }
+        }
+
         listCards(unwanted);
 
         if (!wanted.isEmpty()) {
@@ -81,8 +92,7 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     protected Set<Card> wantedCards() {
-        // TODO Auto-generated method stub
-        return new HashSet<>();
+        return potentiallyBetterCards;
     }
 
     @Override
@@ -120,18 +130,6 @@ public class CompetitivePlayer extends CardOwner {
         unique.removeAll(bestCards);
         return new ArrayList<>(unique);
     }
-
-    /***
-     * 
-     * @return get list of cards that the agent is willing to get rid off
-     */
-    private List<Card> disposableCards() {
-        List<Card> disposable = new ArrayList<>();
-
-        // TODO what is considered disposable? not in bestCards or under avg power?
-
-        return disposable;
-    }
     
     /** 
      * @param data
@@ -141,7 +139,7 @@ public class CompetitivePlayer extends CardOwner {
     public TradeOffer generateTradeOffer(TradeOfferData data) {
         if (data.offered.isEmpty()) return null;
         List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
-        List<Card> canGive = disposableCards();
+        List<Card> canGive = unwantedCards();
 
         // TODO
 
@@ -156,11 +154,11 @@ public class CompetitivePlayer extends CardOwner {
     @Override
     public double evaluateTradeOffer(TradeOffer offer) {
         double value = 0;
-        
+
         for (Card card : offer.give) {
             value += card.getPower();
         }
-        
+
         return value;
     }
 }
