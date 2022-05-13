@@ -122,29 +122,7 @@ public class Collector extends CardOwner {
 
     @Override
     protected Set<AID> selectAgentsForTrade() {
-        Set<AID> agents = new HashSet<>();
-
-        for (Card card : desiredNotOwned) {
-            DFAgentDescription template = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setType(CardOwner.DF_HAVE_TYPE);
-            sd.setName(String.valueOf(card.getId()));
-            template.addServices(sd);
-
-            try {
-                DFAgentDescription[] results = DFService.search(this, template);
-                for (DFAgentDescription result : results) {
-                    if (result.getName() != getAID()) {
-                        agents.add(result.getName());
-                    }
-                }
-            }
-            catch (FIPAException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return agents;
+        return selectAgentsWithCards(desiredNotOwned);
     }
 
     @Override

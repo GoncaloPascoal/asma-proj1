@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +104,32 @@ public abstract class CardOwner extends BaseAgent {
         }
 
         return true;
+    }
+
+    protected Set<AID> selectAgentsWithCards(Set<Card> cards) {
+        Set<AID> agents = new HashSet<>();
+
+        for (Card card : cards) {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType(CardOwner.DF_HAVE_TYPE);
+            sd.setName(String.valueOf(card.getId()));
+            template.addServices(sd);
+
+            try {
+                DFAgentDescription[] results = DFService.search(this, template);
+                for (DFAgentDescription result : results) {
+                    if (result.getName() != getAID()) {
+                        agents.add(result.getName());
+                    }
+                }
+            }
+            catch (FIPAException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return agents;
     }
 
     protected void receiveCapital() {

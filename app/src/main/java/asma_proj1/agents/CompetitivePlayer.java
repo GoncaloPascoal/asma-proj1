@@ -125,7 +125,7 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     protected Set<AID> selectAgentsForTrade() {
-        return new HashSet<>();
+        return selectAgentsWithCards(potentiallyBetterCards);
     }
 
     /** 
