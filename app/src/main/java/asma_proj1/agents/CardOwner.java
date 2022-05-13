@@ -58,9 +58,19 @@ public abstract class CardOwner extends BaseAgent {
     protected AID marketplace = null;
     protected Map<Card, Snapshot> latestSnapshot = new HashMap<>();
 
+    private String group;
+
     @Override
     protected void setup() {
         super.setup();
+
+        Object[] args = getArguments();
+        if (args.length > 0) {
+            group = args[0].toString();
+        }
+
+        StringUtils.logAgentMessage(this, "Started in group " +
+            StringUtils.colorize(group, StringUtils.CYAN));
 
         // Trading (yellow pages) setup
         dfd.setName(getAID());
@@ -117,6 +127,7 @@ public abstract class CardOwner extends BaseAgent {
             ServiceDescription sd = new ServiceDescription();
             sd.setType(CardOwner.DF_HAVE_TYPE);
             sd.setName(String.valueOf(card.getId()));
+            sd.addProperties(new Property("group", group));
             template.addServices(sd);
 
             try {
@@ -205,6 +216,7 @@ public abstract class CardOwner extends BaseAgent {
             sd.setType(DF_HAVE_TYPE);
             sd.setName(String.valueOf(id));
             sd.addProperties(new Property("count", cardsForTrade.get(id)));
+            sd.addProperties(new Property("group", group));
             dfd.addServices(sd);
         }
 

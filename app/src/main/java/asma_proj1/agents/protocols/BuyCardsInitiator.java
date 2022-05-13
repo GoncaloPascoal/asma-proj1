@@ -43,7 +43,7 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
         try {
             Transaction realTransaction = (Transaction) msg.getContentObject();
             int paidPrice = transaction.totalPrice(), realPrice = realTransaction.totalPrice();
-            cardOwner.changeCapital(realPrice - paidPrice);
+            cardOwner.changeCapital(paidPrice - realPrice);
 
             if (!realTransaction.cards.isEmpty()) {
                 cardOwner.addCardsToCollection(realTransaction.cards);
