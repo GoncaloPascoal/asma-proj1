@@ -115,7 +115,7 @@ public class Marketplace extends BaseAgent {
         subscriptions.put(aid, subscription);
     }
 
-    public Transaction attemptPurchase(Transaction transaction) {
+    public Transaction attemptPurchase(Transaction transaction, AID buyer) {
         List<Card> actualCards = new ArrayList<>();
         List<Integer> actualPrices = new ArrayList<>();
         Map<AID, Integer> sellerIncome = new HashMap<>();
@@ -124,7 +124,7 @@ public class Marketplace extends BaseAgent {
             for (int i = 0; i < transaction.cards.size(); ++i) {
                 Card card = transaction.cards.get(i);
                 Integer maxPrice = transaction.prices.get(i);
-                Listing listing = attemptCardPurchase(card, maxPrice);
+                Listing listing = attemptCardPurchase(card, maxPrice, buyer);
 
                 if (listing != null) {
                     actualCards.add(card);
@@ -152,10 +152,10 @@ public class Marketplace extends BaseAgent {
         return new Transaction(actualCards, actualPrices);
     }
 
-    private Listing attemptCardPurchase(Card card, int maxPrice) {
+    private Listing attemptCardPurchase(Card card, int maxPrice, AID buyer) {
         if (!listings.containsKey(card)) return null;
 
-        Stream<Listing> validListings = listings.get(card).stream().filter(l -> l.aid != null);
+        Stream<Listing> validListings = listings.get(card).stream().filter(l -> l.aid != buyer);
         try {
             Listing first = validListings.findFirst().get();
 

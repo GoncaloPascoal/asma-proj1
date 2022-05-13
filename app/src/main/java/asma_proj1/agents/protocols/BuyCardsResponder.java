@@ -38,7 +38,7 @@ public class BuyCardsResponder extends SimpleAchieveREResponder {
 
         try {
             Transaction transaction = (Transaction) request.getContentObject();
-            Transaction actualTransaction = marketplace.attemptPurchase(transaction);
+            Transaction actualTransaction = marketplace.attemptPurchase(transaction, request.getSender());
             inform.setContentObject(actualTransaction);
         }
         catch (UnreadableException | ClassCastException e) {
