@@ -3,19 +3,15 @@ package asma_proj1.agents;
 import java.util.Set;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Collections;
 
 import jade.core.AID;
 
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
-import asma_proj1.card.Rarity;
-import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
@@ -95,13 +91,13 @@ public class CompetitivePlayer extends CardOwner {
     }
 
     @Override
-    protected Set<Card> wantedCards() {
+    protected TreeSet<Card> wantedCards() {
         return potentiallyBetterCards;
     }
 
     @Override
-    protected List<Card> unwantedCards() {
-        List<Card> unwanted = new ArrayList<>();
+    protected ArrayList<Card> unwantedCards() {
+        ArrayList<Card> unwanted = new ArrayList<>();
 
         for (Map.Entry<Card, Integer> entry : collection.entrySet()) {
             Card card = entry.getKey();
@@ -123,51 +119,17 @@ public class CompetitivePlayer extends CardOwner {
     }
 
     @Override
-    public List<Card> selectCardsForTrade(List<Card> offered) {
+    public ArrayList<Card> selectCardsForTrade(ArrayList<Card> offered) {
         offered.retainAll(potentiallyBetterCards);
         return offered;
     }
 
     @Override
     public TradeOffer generateTradeOffer(TradeOfferData data) {
-        if (data.offered.isEmpty()) return null;
-        List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
-        List<Card> canGive = unwantedCards();
-
         Collections.sort(data.offered, cardPowerComparator);
-
-        // TODO: refactor this
-        Comparator<Card> comparator = Comparator.comparingDouble(c -> data.wanted.contains(c) ? 1 : 0);
-        Map<Rarity, PriorityQueue<Card>> rarityPriorityMap = new HashMap<>();
-        for (Rarity rarity : Rarity.values()) {
-            rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
-        }
-        for (Card card : canGive) {
-            Rarity rarity = card.getRarity();
-            rarityPriorityMap.get(rarity).add(card);
-        }
-
-        // Not yet tested
-        while (!data.offered.isEmpty() && !canGive.isEmpty()) {
-            Card rCard = data.offered.remove(data.offered.size() - 1);
-            Rarity rarity = rCard.getRarity();
-
-            if (rarityPriorityMap.get(rarity).size() > 0) {
-                Card gCard = rarityPriorityMap.get(rarity).poll();
-
-                receive.add(rCard);
-                give.add(gCard);
-            }
-        }
-
-        if (give.isEmpty() || receive.isEmpty()) {
-            return null;
-        }
-
-        return new TradeOffer(give, receive);
+        return super.generateTradeOffer(data);
     }
 
-    
     /** 
      * @param offer trade offer received
      * @return double value for the agent of the received offer 

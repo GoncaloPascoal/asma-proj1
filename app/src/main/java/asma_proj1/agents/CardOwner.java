@@ -3,12 +3,15 @@ package asma_proj1.agents;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -78,12 +81,11 @@ public abstract class CardOwner extends BaseAgent {
     protected abstract CardSet selectSet();
     protected abstract void handleNewCards(List<Card> cards);
 
-    protected abstract Set<Card> wantedCards();
-    protected abstract List<Card> unwantedCards();
+    protected abstract TreeSet<Card> wantedCards();
+    protected abstract ArrayList<Card> unwantedCards();
 
     protected abstract Set<AID> selectAgentsForTrade();
-    public abstract List<Card> selectCardsForTrade(List<Card> offered);
-    public abstract TradeOffer generateTradeOffer(TradeOfferData data);
+    public abstract ArrayList<Card> selectCardsForTrade(ArrayList<Card> offered);
     public abstract double evaluateTradeOffer(TradeOffer offer);
 
     public Map<Card, Integer> getCollection() {
@@ -291,6 +293,48 @@ public abstract class CardOwner extends BaseAgent {
             RandomUtils.doubleRangeInclusive(0.9, 1.1));
     }
 
+    public TradeOffer generateTradeOffer(TradeOfferData data) {
+        if (data.offered.isEmpty()) return null;
+        List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
+        List<Card> canGive = unwantedCards();
+
+        Map<Card, Integer> priorityMap = new HashMap<>();
+        int i = 1;
+        for (Card card : data.wanted) {
+            priorityMap.put(card, i);
+            ++i;
+        }
+
+        Comparator<Card> comparator = Comparator.comparingDouble(c -> priorityMap.getOrDefault(c, 0));
+        Map<Rarity, PriorityQueue<Card>> rarityPriorityMap = new HashMap<>();
+        for (Rarity rarity : Rarity.values()) {
+            // PriorityQueue is a min-heap by default
+            rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
+        }
+        for (Card card : canGive) {
+            Rarity rarity = card.getRarity();
+            rarityPriorityMap.get(rarity).add(card);
+        }
+
+        while (!data.offered.isEmpty() && !canGive.isEmpty()) {
+            Card rCard = data.offered.remove(data.offered.size() - 1);
+            Rarity rarity = rCard.getRarity();
+
+            if (rarityPriorityMap.get(rarity).size() > 0) {
+                Card gCard = rarityPriorityMap.get(rarity).poll();
+
+                receive.add(rCard);
+                give.add(gCard);
+            }
+        }
+
+        if (give.isEmpty() || receive.isEmpty()) {
+            return null;
+        }
+
+        return new TradeOffer(give, receive);
+    }
+
     private class ReceiveCapital extends TickerBehaviour {
         private static final int INTERVAL_SECONDS = 25;
 
@@ -357,7 +401,7 @@ public abstract class CardOwner extends BaseAgent {
                 // Trading
                 Set<AID> agents = selectAgentsForTrade();
                 if (!agents.isEmpty()) {
-                    List<Card> offered = unwantedCards();
+                    ArrayList<Card> offered = unwantedCards();
     
                     if (!offered.isEmpty()) {
                         StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
