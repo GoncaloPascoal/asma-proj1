@@ -253,7 +253,33 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     protected Transaction selectCardsToBuy() {
-        return null;
+        List<Card> cards = new ArrayList<>();
+        List<Integer> prices = new ArrayList<>();
+        int totalPrice = 0;
+
+        for (Card card : wantedCards()) {
+            // TODO: Create new constants for probability / ratios
+            if (RandomUtils.random.nextDouble() <= 0.25) {
+                int maxPrice;
+                if (latestSnapshot.containsKey(card)) {
+                    Snapshot snapshot = latestSnapshot.get(card);
+                    maxPrice = (int) (snapshot.minPrice *
+                        RandomUtils.doubleRangeInclusive(1.0, 1.4));
+                }
+                else {
+                    maxPrice = (int) ((double) basePrice.get(card.getRarity()) *
+                        RandomUtils.doubleRangeInclusive(1.0, 1.2));
+                }
+
+                if (totalPrice + maxPrice <= getCapital()) {
+                    totalPrice += maxPrice;
+                    cards.add(card);
+                    prices.add(maxPrice);
+                }
+            }
+        }
+
+        return new Transaction(cards, prices);
     }
 
     protected Transaction selectCardsToSell() {

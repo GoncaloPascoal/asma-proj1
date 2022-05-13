@@ -30,7 +30,7 @@ public class CardDatabase extends Agent {
         }
 
         generateCardSet();
-        //addBehaviour(new GenerateCardSet(this));
+        addBehaviour(new GenerateCardSet(this));
     }
 
     public void generateCardSet() {
@@ -49,7 +49,7 @@ public class CardDatabase extends Agent {
     }
 
     private class GenerateCardSet extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 50;
+        private static final int INTERVAL_SECONDS = 240;
 
         public GenerateCardSet(CardDatabase database) {
             super(database, INTERVAL_SECONDS * 1000);

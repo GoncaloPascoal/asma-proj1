@@ -11,9 +11,7 @@ import java.util.TreeSet;
 
 import jade.core.AID;
 
-import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
-import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
@@ -24,6 +22,7 @@ public class Collector extends CardOwner {
     private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 5, MAX_NEW_CARDS = 15;
     private Set<Card> desiredCards = new HashSet<>(), desiredNotOwned = new HashSet<>();
 
+    // Used solely for evaluating trade offers
     private static final Map<Rarity, Double> rarityValueMap = Map.of(
         Rarity.COMMON, 10.0,
         Rarity.UNCOMMON, 25.0,
@@ -141,36 +140,5 @@ public class Collector extends CardOwner {
         }
 
         return value;
-    }
-
-    @Override
-    public Transaction selectCardsToBuy() {
-        List<Card> cards = new ArrayList<>();
-        List<Integer> prices = new ArrayList<>();
-        int totalPrice = 0;
-
-        for (Card card : desiredNotOwned) {
-            // TODO: Create new constants for probability / ratios
-            if (RandomUtils.random.nextDouble() <= 0.25) {
-                int maxPrice;
-                if (latestSnapshot.containsKey(card)) {
-                    Snapshot snapshot = latestSnapshot.get(card);
-                    maxPrice = (int) (snapshot.minPrice *
-                        RandomUtils.doubleRangeInclusive(1.0, 1.4));
-                }
-                else {
-                    maxPrice = (int) ((double) rarityValueMap.get(card.getRarity()) *
-                        RandomUtils.doubleRangeInclusive(1.0, 1.2));
-                }
-
-                if (totalPrice + maxPrice <= getCapital()) {
-                    totalPrice += maxPrice;
-                    cards.add(card);
-                    prices.add(maxPrice);
-                }
-            }
-        }
-
-        return new Transaction(cards, prices);
     }
 }
