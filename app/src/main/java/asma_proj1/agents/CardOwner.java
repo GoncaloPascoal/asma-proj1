@@ -252,9 +252,9 @@ public abstract class CardOwner extends BaseAgent {
     protected int evaluateSellPrice(Card card) {
         if (latestSnapshot.containsKey(card)) {
             Snapshot snapshot = latestSnapshot.get(card);
-            
+
             // TODO: custom parameters depending on rarity
-            double multiplier = 1 / Math.min(0.85, Math.exp(0.0025 * snapshot.count));
+            double multiplier = 1.05 / Math.min(0.85, Math.exp(0.0035 * snapshot.count));
             multiplier *= RandomUtils.doubleRangeInclusive(0.95, 1.05);
 
             return (int) (snapshot.averagePrice * multiplier);
@@ -297,14 +297,18 @@ public abstract class CardOwner extends BaseAgent {
 
             block(1000);
 
-            // TODO: apply marketplace buy / sell effects before adding behaviour
-
             // Buying in marketplace
             if (marketplace != null) {
                 Transaction transaction = selectCardsToBuy();
                 if (transaction != null && !transaction.isEmpty()) {
-                    addBehaviour(new BuyCardsInitiator(cardOwner, marketplace, transaction));
-                    block(1000);
+                    if (cardOwner.changeCapital(-transaction.totalPrice())) {
+                        addBehaviour(new BuyCardsInitiator(cardOwner, marketplace, transaction));
+                        block(1000);
+                    }
+                    else {
+                        StringUtils.logAgentError(cardOwner,
+                            "Couldn't pay specified maximum price for marketplace cards.");
+                    }
                 }
             }
 
@@ -313,8 +317,13 @@ public abstract class CardOwner extends BaseAgent {
                 if (marketplace != null) {
                     Transaction transaction = selectCardsToSell();
                     if (transaction != null && !transaction.isEmpty()) {
-                        addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
-                        block(1000);
+                        if (cardOwner.changeCapital(-Marketplace.calculateSellerFee(transaction))) {
+                            cardOwner.collectionLock.lock();
+                            cardOwner.removeCardsFromCollection(transaction.cards);
+                            cardOwner.collectionLock.unlock();
+                            addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
+                            block(1000);
+                        }
                     }
                 }
 

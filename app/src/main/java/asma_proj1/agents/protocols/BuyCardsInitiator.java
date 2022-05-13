@@ -35,13 +35,6 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
             e.printStackTrace();
             return null;
         }
-
-        if (!cardOwner.changeCapital(-transaction.totalPrice())) {
-            StringUtils.logAgentError(cardOwner,
-                "Couldn't pay specified maximum price for marketplace cards.");
-            return null;
-        }
-
         return msg;
     }
 

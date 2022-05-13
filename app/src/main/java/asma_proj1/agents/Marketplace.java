@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import jade.core.AID;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -23,6 +24,7 @@ import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
+import asma_proj1.utils.StringUtils;
 
 public class Marketplace extends BaseAgent {
     public static final String SERVICE_TYPE = "marketplace",
@@ -59,6 +61,7 @@ public class Marketplace extends BaseAgent {
         addBehaviour(new SnapshotResponder(this));
         addBehaviour(new BuyCardsResponder(this));
         addBehaviour(new SellCardsResponder(this));
+        addBehaviour(new LogInformation(this));
     }
 
     public static int calculateSellerFee(int price) {
@@ -169,6 +172,39 @@ public class Marketplace extends BaseAgent {
         }
         catch (NoSuchElementException e) {
             return null;
+        }
+    }
+
+    private String cardInformation(Card card) {
+        TreeSet<Listing> cardListings = listings.get(card);
+        return String.format("• %s: %d, from %.2f 💵", card.idRarity(),
+            cardListings.size(), (double) cardListings.first().price / 100);
+    }
+
+    private String cardInformation() {
+        StringBuilder builder = new StringBuilder();
+
+        synchronized (listings) {
+            for (Card card : listings.keySet()) {
+                builder.append("\n    ").append(cardInformation(card));
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private class LogInformation extends TickerBehaviour {
+        private static final int INTERVAL_SECONDS = 120;
+
+        public LogInformation(Marketplace marketplace) {
+            super(marketplace, INTERVAL_SECONDS * 1000);
+        }
+        
+        @Override
+        protected void onTick() {
+            String information = String.format("Accumulated capital: %.2f 💵", (double) getCapital() / 100);
+            information += cardInformation();
+            StringUtils.logAgentMessage(myAgent, information);
         }
     }
 }
