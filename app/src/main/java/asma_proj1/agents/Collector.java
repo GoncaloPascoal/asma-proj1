@@ -13,6 +13,7 @@ import java.util.Set;
 
 import jade.core.AID;
 
+import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
@@ -151,5 +152,26 @@ public class Collector extends CardOwner {
         }
 
         return value;
+    }
+
+    @Override
+    protected int evaluateMaxBuyPrice(Card card) {
+        if (!desiredNotOwned.containsKey(card)) return 0;
+
+        double elapsedSeconds = System.nanoTime() - desiredNotOwned.get(card) / 1e9;
+        double base;
+
+        if (latestSnapshot.containsKey(card)) {
+            Snapshot snapshot = latestSnapshot.get(card);
+            base = (snapshot.minPrice *
+                RandomUtils.doubleRangeInclusive(1.1, 1.4));
+        }
+        else {
+            base = (basePrice.get(card.getRarity()) *
+                RandomUtils.doubleRangeInclusive(1.0, 1.2));
+        }
+
+        double desireFactor = 1.4 - 0.4 / Math.exp(0.005 * elapsedSeconds);
+        return (int) (base * desireFactor);
     }
 }

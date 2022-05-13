@@ -299,6 +299,8 @@ public abstract class CardOwner extends BaseAgent {
         return transaction;
     }
 
+    protected abstract int evaluateMaxBuyPrice(Card card);
+
     protected int evaluateSellPrice(Card card) {
         if (latestSnapshot.containsKey(card)) {
             Snapshot snapshot = latestSnapshot.get(card);
@@ -312,17 +314,6 @@ public abstract class CardOwner extends BaseAgent {
 
         return (int) ((double) basePrice.get(card.getRarity()) *
             RandomUtils.doubleRangeInclusive(0.9, 1.1));
-    }
-
-    protected int evaluateMaxBuyPrice(Card card) {
-        if (latestSnapshot.containsKey(card)) {
-            Snapshot snapshot = latestSnapshot.get(card);
-            return (int) (snapshot.minPrice *
-                RandomUtils.doubleRangeInclusive(1.0, 1.4));
-        }
-
-        return (int) (basePrice.get(card.getRarity()) *
-            RandomUtils.doubleRangeInclusive(1.0, 1.2));
     }
 
     public TradeOffer generateTradeOffer(TradeOfferData data) {

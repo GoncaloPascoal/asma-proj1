@@ -32,6 +32,7 @@ public class SnapshotInitiator extends SimpleAchieveREInitiator {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void handleInform(ACLMessage msg) {
         try {
             HashMap<Card, Snapshot> snapshot = (HashMap<Card, Snapshot>) msg.getContentObject();
