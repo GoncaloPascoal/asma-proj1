@@ -7,11 +7,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -81,7 +81,7 @@ public abstract class CardOwner extends BaseAgent {
     protected abstract CardSet selectSet();
     protected abstract void handleNewCards(List<Card> cards);
 
-    protected abstract TreeSet<Card> wantedCards();
+    protected abstract LinkedHashSet<Card> wantedCards();
     protected abstract ArrayList<Card> unwantedCards();
 
     protected abstract Set<AID> selectAgentsForTrade();
@@ -275,6 +275,10 @@ public abstract class CardOwner extends BaseAgent {
                     totalPrice += maxPrice;
                     cards.add(card);
                     prices.add(maxPrice);
+
+                    if (RandomUtils.random.nextDouble() > 1 / Math.exp(0.16 * cards.size())) {
+                        break;
+                    }
                 }
             }
         }
@@ -392,7 +396,7 @@ public abstract class CardOwner extends BaseAgent {
                 addBehaviour(new SnapshotInitiator(cardOwner, marketplace));
             }
 
-            block(1000);
+            block(500);
 
             // Buying in marketplace
             if (marketplace != null) {
@@ -400,7 +404,7 @@ public abstract class CardOwner extends BaseAgent {
                 if (transaction != null && !transaction.isEmpty()) {
                     if (cardOwner.changeCapital(-transaction.totalPrice())) {
                         addBehaviour(new BuyCardsInitiator(cardOwner, marketplace, transaction));
-                        block(1000);
+                        block(500);
                     }
                     else {
                         StringUtils.logAgentError(cardOwner,
@@ -419,7 +423,7 @@ public abstract class CardOwner extends BaseAgent {
                             cardOwner.removeCardsFromCollection(transaction.cards);
                             cardOwner.collectionLock.unlock();
                             addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
-                            block(1000);
+                            block(500);
                         }
                     }
                 }

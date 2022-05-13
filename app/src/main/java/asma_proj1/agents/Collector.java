@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import jade.core.AID;
 
@@ -20,7 +21,8 @@ import asma_proj1.utils.StringUtils;
 
 public class Collector extends CardOwner {
     private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 5, MAX_NEW_CARDS = 15;
-    private Set<Card> desiredCards = new HashSet<>(), desiredNotOwned = new HashSet<>();
+    private Set<Card> desiredCards = new HashSet<>();
+    private LinkedHashMap<Card, Long> desiredNotOwned = new LinkedHashMap<>();
 
     // Used solely for evaluating trade offers
     private static final Map<Rarity, Double> rarityValueMap = Map.of(
@@ -57,7 +59,9 @@ public class Collector extends CardOwner {
         if (newCards > 0) {
             List<Card> newDesired = RandomUtils.sample(set.getCards(), newCards);
             desiredCards.addAll(newDesired);
-            desiredNotOwned.addAll(newDesired);
+            for (Card card : newDesired) {
+                desiredNotOwned.put(card, System.nanoTime());
+            }
 
             List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
@@ -70,7 +74,7 @@ public class Collector extends CardOwner {
         List<Card> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
 
         for (Card card : cards) {
-            if (desiredNotOwned.contains(card)) {
+            if (desiredNotOwned.containsKey(card)) {
                 wanted.add(card);
                 desiredNotOwned.remove(card);
             }
@@ -93,8 +97,8 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    protected TreeSet<Card> wantedCards() {
-        return new TreeSet<>(desiredNotOwned);
+    protected LinkedHashSet<Card> wantedCards() {
+        return new LinkedHashSet<>(desiredNotOwned.keySet());
     }
 
     @Override
@@ -115,13 +119,13 @@ public class Collector extends CardOwner {
 
     @Override
     protected Set<AID> selectAgentsForTrade() {
-        return selectAgentsWithCards(desiredNotOwned);
+        return selectAgentsWithCards(desiredNotOwned.keySet());
     }
 
     @Override
     public ArrayList<Card> selectCardsForTrade(ArrayList<Card> offered) {
         Set<Card> unique = new HashSet<>(offered);
-        unique.retainAll(desiredNotOwned);
+        unique.retainAll(desiredNotOwned.keySet());
         return new ArrayList<>(unique);
     }
 
@@ -133,7 +137,7 @@ public class Collector extends CardOwner {
         for (Card card : offer.give) {
             desiredInOffer.add(card);
         }
-        desiredInOffer.retainAll(desiredNotOwned);
+        desiredInOffer.retainAll(desiredNotOwned.keySet());
 
         for (Card card : desiredInOffer) {
             value += rarityValueMap.get(card.getRarity());

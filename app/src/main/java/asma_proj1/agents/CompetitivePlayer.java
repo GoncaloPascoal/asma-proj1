@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Collections;
 
 import jade.core.AID;
@@ -91,8 +92,8 @@ public class CompetitivePlayer extends CardOwner {
     }
 
     @Override
-    protected TreeSet<Card> wantedCards() {
-        return potentiallyBetterCards;
+    protected LinkedHashSet<Card> wantedCards() {
+        return new LinkedHashSet<>(potentiallyBetterCards);
     }
 
     @Override
