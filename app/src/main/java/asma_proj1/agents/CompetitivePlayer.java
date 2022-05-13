@@ -7,11 +7,13 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collections;
 
 import jade.core.AID;
 
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
@@ -32,6 +34,14 @@ public class CompetitivePlayer extends CardOwner {
             totalPower += card.getPower();
         }
         return totalPower / CardSet.SET_SIZE;
+    }
+
+    private static double averageCollectionPower(Map<Card, Integer> collection) {
+        double totalPower = 0;
+        for (Map.Entry<Card,Integer> entry : collection.entrySet()) {
+            totalPower += entry.getKey().getPower() * entry.getValue();
+        }
+        return totalPower / collection.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     @Override
@@ -130,6 +140,32 @@ public class CompetitivePlayer extends CardOwner {
         unique.removeAll(bestCards);
         return new ArrayList<>(unique);
     }
+
+    /**
+     * 
+     * @return set of all the cards the agent would consider useful to improve the collection
+     */
+    private TreeSet<Card> allCardsWanted() {
+
+        TreeSet<Card> allCards = new TreeSet<>();
+
+        for (CardSet cardSet : cardSets) {
+            for (Card card : cardSet.getCards()) allCards.add(card);
+        }
+
+        allCards.removeAll(new TreeSet<>(collection.keySet())); // removing all cards already owned
+
+        if (bestCards.size() < BEST_MAX_SIZE) {
+            allCards.removeIf(c -> (c.getPower() < averageCollectionPower(collection))); // remove all cards that have power under the current collection average
+        }
+        else { // when bestCards is full
+            Set<Double> powers = new HashSet<>();
+            for (Card c : bestCards) powers.add(c.getPower());
+            allCards.removeIf(c -> (c.getPower() < Collections.min(powers))); // remove all cards that have power under the lowest found in bestCards
+        }
+
+        return allCards;
+    }
     
     /** 
      * @param data
@@ -140,8 +176,19 @@ public class CompetitivePlayer extends CardOwner {
         if (data.offered.isEmpty()) return null;
         List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
         List<Card> canGive = unwantedCards();
+        
+        // keep in data.offered all cards that are acceptable for the agent
+        data.offered.retainAll(allCardsWanted());
 
-        // TODO
+        // Not yet tested
+        while (!data.offered.isEmpty() && !canGive.isEmpty()) {
+
+            Card rCard = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
+            Card gCard = canGive.remove(RandomUtils.random.nextInt(data.offered.size()));
+
+            receive.add(rCard);
+            give.add(gCard);
+        }
 
         return new TradeOffer(give, receive);
     }
