@@ -38,6 +38,7 @@ import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
 import asma_proj1.utils.ConversionUtils;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
@@ -436,7 +437,7 @@ public abstract class CardOwner extends BaseAgent {
     
                     if (!offered.isEmpty()) {
                         StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
-                        " possible agents to trade with.");
+                        " possible agents to trade with.", LogPriority.LOW);
     
                         addBehaviour(new TradeOfferInitiator(cardOwner,
                             new TradeOfferData(wantedCards(), offered), agents));

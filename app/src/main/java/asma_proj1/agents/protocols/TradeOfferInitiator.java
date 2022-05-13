@@ -13,6 +13,7 @@ import jade.proto.ContractNetInitiator;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.StringUtils;
 
 public class TradeOfferInitiator extends ContractNetInitiator {
@@ -81,7 +82,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
         }
 
         if (numOffers > 0) {
-            StringUtils.logAgentMessage(myAgent, "🔄 Received " + numOffers + " trade offers.");
+            StringUtils.logAgentMessage(myAgent, "🔄 Received " + numOffers + " trade offers.", LogPriority.LOW);
 
             cardOwner.collectionLock.lock();
 

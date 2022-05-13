@@ -11,6 +11,7 @@ import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.card.Card;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.StringUtils;
 
 public class SnapshotInitiator extends SimpleAchieveREInitiator {
@@ -35,7 +36,7 @@ public class SnapshotInitiator extends SimpleAchieveREInitiator {
         try {
             HashMap<Card, Snapshot> snapshot = (HashMap<Card, Snapshot>) msg.getContentObject();
             cardOwner.setLatestSnapshot(snapshot);
-            StringUtils.logAgentMessage(cardOwner, "📸 Obtained latest market snapshot.");
+            StringUtils.logAgentMessage(cardOwner, "📸 Obtained latest market snapshot.", LogPriority.LOW);
         }
         catch (UnreadableException | ClassCastException e) {
             e.printStackTrace();

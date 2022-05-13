@@ -8,6 +8,7 @@ import jade.lang.acl.ACLMessage;
 import jade.proto.SubscriptionInitiator;
 import asma_proj1.agents.BaseAgent;
 import asma_proj1.agents.CardOwner;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.StringUtils;
 
 public class MarketplaceSubscriptionInitiator extends SubscriptionInitiator {
@@ -30,7 +31,7 @@ public class MarketplaceSubscriptionInitiator extends SubscriptionInitiator {
 
     @Override
     protected void handleAgree(ACLMessage agree) {
-        StringUtils.logAgentMessage(myAgent, "🏦 Subscribed to updates from marketplace.");
+        StringUtils.logAgentMessage(myAgent, "🏦 Subscribed to updates from marketplace.", LogPriority.LOW);
     }
 
     @Override
