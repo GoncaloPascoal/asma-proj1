@@ -3,16 +3,18 @@ package asma_proj1.agents;
 import java.util.Set;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
+import java.util.PriorityQueue;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Collections;
 
 import jade.core.AID;
 
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.card.Rarity;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.TradeOffer;
@@ -34,14 +36,6 @@ public class CompetitivePlayer extends CardOwner {
             totalPower += card.getPower();
         }
         return totalPower / CardSet.SET_SIZE;
-    }
-
-    private static double averageCollectionPower(Map<Card, Integer> collection) {
-        double totalPower = 0;
-        for (Map.Entry<Card,Integer> entry : collection.entrySet()) {
-            totalPower += entry.getKey().getPower() * entry.getValue();
-        }
-        return totalPower / collection.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     @Override
@@ -128,66 +122,46 @@ public class CompetitivePlayer extends CardOwner {
         return selectAgentsWithCards(potentiallyBetterCards);
     }
 
-    /** 
-     * @param offered
-     * @return List<Card> cards that the agent is willing to give in exchange for others in a trade 
-     */
     @Override
     public List<Card> selectCardsForTrade(List<Card> offered) {
-        Set<Card> unique = new HashSet<>(offered);
-        // retainAll -> removes from 1st all elements that aren't in 2nd
-        // removeAll -> removes from 1st all element that are in the 2nd
-        unique.removeAll(bestCards);
-        return new ArrayList<>(unique);
+        offered.retainAll(potentiallyBetterCards);
+        return offered;
     }
 
-    /**
-     * 
-     * @return set of all the cards the agent would consider useful to improve the collection
-     */
-    private TreeSet<Card> allCardsWanted() {
-
-        TreeSet<Card> allCards = new TreeSet<>();
-
-        for (CardSet cardSet : cardSets) {
-            for (Card card : cardSet.getCards()) allCards.add(card);
-        }
-
-        allCards.removeAll(new TreeSet<>(collection.keySet())); // removing all cards already owned
-
-        if (bestCards.size() < BEST_MAX_SIZE) {
-            allCards.removeIf(c -> (c.getPower() < averageCollectionPower(collection))); // remove all cards that have power under the current collection average
-        }
-        else { // when bestCards is full
-            Set<Double> powers = new HashSet<>();
-            for (Card c : bestCards) powers.add(c.getPower());
-            allCards.removeIf(c -> (c.getPower() < Collections.min(powers))); // remove all cards that have power under the lowest found in bestCards
-        }
-
-        return allCards;
-    }
-    
-    /** 
-     * @param data
-     * @return TradeOffer
-     */
     @Override
     public TradeOffer generateTradeOffer(TradeOfferData data) {
         if (data.offered.isEmpty()) return null;
         List<Card> give = new ArrayList<>(), receive = new ArrayList<>();
         List<Card> canGive = unwantedCards();
-        
-        // keep in data.offered all cards that are acceptable for the agent
-        data.offered.retainAll(allCardsWanted());
+
+        Collections.sort(data.offered, cardPowerComparator);
+
+        // TODO: refactor this
+        Comparator<Card> comparator = Comparator.comparingDouble(c -> data.wanted.contains(c) ? 1 : 0);
+        Map<Rarity, PriorityQueue<Card>> rarityPriorityMap = new HashMap<>();
+        for (Rarity rarity : Rarity.values()) {
+            rarityPriorityMap.put(rarity, new PriorityQueue<>(comparator.reversed()));
+        }
+        for (Card card : canGive) {
+            Rarity rarity = card.getRarity();
+            rarityPriorityMap.get(rarity).add(card);
+        }
 
         // Not yet tested
         while (!data.offered.isEmpty() && !canGive.isEmpty()) {
+            Card rCard = data.offered.remove(data.offered.size() - 1);
+            Rarity rarity = rCard.getRarity();
 
-            Card rCard = data.offered.remove(RandomUtils.random.nextInt(data.offered.size()));
-            Card gCard = canGive.remove(RandomUtils.random.nextInt(data.offered.size()));
+            if (rarityPriorityMap.get(rarity).size() > 0) {
+                Card gCard = rarityPriorityMap.get(rarity).poll();
 
-            receive.add(rCard);
-            give.add(gCard);
+                receive.add(rCard);
+                give.add(gCard);
+            }
+        }
+
+        if (give.isEmpty() || receive.isEmpty()) {
+            return null;
         }
 
         return new TradeOffer(give, receive);

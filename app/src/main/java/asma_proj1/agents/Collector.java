@@ -11,10 +11,6 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import jade.core.AID;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
@@ -158,6 +154,10 @@ public class Collector extends CardOwner {
                 receive.add(rCard);
                 give.add(gCard);
             }
+        }
+
+        if (give.isEmpty() || receive.isEmpty()) {
+            return null;
         }
 
         return new TradeOffer(give, receive);
