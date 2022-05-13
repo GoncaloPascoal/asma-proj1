@@ -260,17 +260,7 @@ public abstract class CardOwner extends BaseAgent {
         for (Card card : wantedCards()) {
             // TODO: Create new constants for probability / ratios
             if (RandomUtils.random.nextDouble() <= 0.25) {
-                int maxPrice;
-                if (latestSnapshot.containsKey(card)) {
-                    Snapshot snapshot = latestSnapshot.get(card);
-                    maxPrice = (int) (snapshot.minPrice *
-                        RandomUtils.doubleRangeInclusive(1.0, 1.4));
-                }
-                else {
-                    maxPrice = (int) ((double) basePrice.get(card.getRarity()) *
-                        RandomUtils.doubleRangeInclusive(1.0, 1.2));
-                }
-
+                int maxPrice = evaluateMaxBuyPrice(card);
                 if (totalPrice + maxPrice <= getCapital()) {
                     totalPrice += maxPrice;
                     cards.add(card);
@@ -321,6 +311,17 @@ public abstract class CardOwner extends BaseAgent {
 
         return (int) ((double) basePrice.get(card.getRarity()) *
             RandomUtils.doubleRangeInclusive(0.9, 1.1));
+    }
+
+    protected int evaluateMaxBuyPrice(Card card) {
+        if (latestSnapshot.containsKey(card)) {
+            Snapshot snapshot = latestSnapshot.get(card);
+            return (int) (snapshot.minPrice *
+                RandomUtils.doubleRangeInclusive(1.0, 1.4));
+        }
+
+        return (int) (basePrice.get(card.getRarity()) *
+            RandomUtils.doubleRangeInclusive(1.0, 1.2));
     }
 
     public TradeOffer generateTradeOffer(TradeOfferData data) {

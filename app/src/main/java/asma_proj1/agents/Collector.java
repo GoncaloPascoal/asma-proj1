@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,7 +99,13 @@ public class Collector extends CardOwner {
 
     @Override
     protected LinkedHashSet<Card> wantedCards() {
-        return new LinkedHashSet<>(desiredNotOwned.keySet());
+        LinkedList<Card> wanted = new LinkedList<>();
+        /* Insert cards in reverse order (to give more priority to cards that
+           have been desired for a longer period of time) */
+        for (Card card : desiredNotOwned.keySet()) {
+            wanted.addFirst(card);
+        }
+        return new LinkedHashSet<>(wanted);
     }
 
     @Override
