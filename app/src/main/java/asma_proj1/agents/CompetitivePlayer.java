@@ -35,6 +35,13 @@ public class CompetitivePlayer extends CardOwner {
         return totalPower / CardSet.SET_SIZE;
     }
 
+    /**
+     * Returns whether or not a card would increase the power of the player's collection.
+     */
+    private boolean isCardMorePowerful(Card card) {
+        return bestCards.size() < BEST_MAX_SIZE || card.getPower() >= bestCards.first().getPower();
+    }
+
     @Override
     protected void handleNewCardSet(CardSet set) {
         if (bestSet == null || averagePower(set) > averagePower(bestSet)) {
@@ -42,7 +49,7 @@ public class CompetitivePlayer extends CardOwner {
         }
 
         for (Card card : set.getCards()) {
-            if (bestCards.isEmpty() || card.getPower() >= bestCards.first().getPower()) {
+            if (isCardMorePowerful(card)) {
                 potentiallyBetterCards.add(card);
             }
         }
@@ -59,8 +66,7 @@ public class CompetitivePlayer extends CardOwner {
         List<Card> unwanted = new ArrayList<>();
 
         for (Card card : cards) {
-            if (!bestCards.contains(card) && (bestCards.size() < BEST_MAX_SIZE ||
-                    card.getPower() > bestCards.first().getPower())) {
+            if (!bestCards.contains(card) && isCardMorePowerful(card)) {
                 if (bestCards.size() == BEST_MAX_SIZE) {
                     unwanted.add(bestCards.pollFirst());
                 }
@@ -131,16 +137,15 @@ public class CompetitivePlayer extends CardOwner {
         return super.generateTradeOffer(data);
     }
 
-    /** 
-     * @param offer trade offer received
-     * @return double value for the agent of the received offer 
-     */
     @Override
     public double evaluateTradeOffer(TradeOffer offer) {
         double value = 0;
 
+        // TODO: include marketplace price in calculation as a secondary factor?
         for (Card card : offer.give) {
-            value += card.getPower();
+            if (isCardMorePowerful(card)) {
+                value += card.getPower();
+            }
         }
 
         return value;
