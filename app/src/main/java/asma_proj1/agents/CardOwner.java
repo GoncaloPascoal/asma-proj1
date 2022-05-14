@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -59,15 +60,15 @@ public abstract class CardOwner extends BaseAgent {
     protected Map<Card, Snapshot> latestSnapshot = new HashMap<>();
 
     private String group;
+    private CardOwnerParameters parameters;
 
     @Override
     protected void setup() {
         super.setup();
 
         Object[] args = getArguments();
-        if (args.length > 0) {
-            group = args[0].toString();
-        }
+        group = args.length >= 1 ? args[0].toString() : "default";
+        parameters = args.length >= 2 ? (CardOwnerParameters) args[1] : new CardOwnerParameters();
 
         StringUtils.logAgentMessage(this, "Started in group " +
             StringUtils.colorize(group, StringUtils.CYAN));
@@ -150,7 +151,11 @@ public abstract class CardOwner extends BaseAgent {
         int capital = RandomUtils.intRangeInclusive(400, 900);
         changeCapital(capital);
         StringUtils.logAgentMessage(this, "Received periodic capital: " +
-            changeCapitalMessage(capital));
+            changeCapitalMessage(capital) + " (total: " +
+            StringUtils.colorize(
+                String.format("%.2f 💵", (double) getCapital() / 100),
+                StringUtils.GREEN
+            ) + ")");
     }
 
     protected void purchasePack(CardSet set) {
@@ -270,18 +275,15 @@ public abstract class CardOwner extends BaseAgent {
         List<Integer> prices = new ArrayList<>();
         int totalPrice = 0;
 
-        for (Card card : wantedCards()) {
-            // TODO: Create new constants for probability / ratios
-            if (RandomUtils.random.nextDouble() <= 0.25) {
+        List<Card> wanted = new LinkedList<>(wantedCards());
+        for (int i = wanted.size() - 1; i >= 0; --i) {
+            Card card = wanted.get(i);
+            if (latestSnapshot.containsKey(card) || RandomUtils.randomOutcome(0.15)) {
                 int maxPrice = evaluateMaxBuyPrice(card);
-                if (totalPrice + maxPrice <= getCapital()) {
+                if (totalPrice + maxPrice <= parameters.marketCapitalLimit * getCapital()) {
                     totalPrice += maxPrice;
                     cards.add(card);
                     prices.add(maxPrice);
-
-                    if (RandomUtils.random.nextDouble() > 1 / Math.exp(0.16 * cards.size())) {
-                        break;
-                    }
                 }
             }
         }
@@ -384,7 +386,7 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     private class CardOwnerBehaviour extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 15;
+        private static final int INTERVAL_SECONDS = 10;
         private final CardOwner cardOwner;
 
         public CardOwnerBehaviour(CardOwner cardOwner) {
@@ -404,7 +406,7 @@ public abstract class CardOwner extends BaseAgent {
             block(500);
 
             // Buying in marketplace
-            if (marketplace != null) {
+            if (marketplace != null && RandomUtils.randomOutcome(parameters.probBuyMarket)) {
                 Transaction transaction = selectCardsToBuy();
                 if (transaction != null && !transaction.isEmpty()) {
                     if (cardOwner.changeCapital(-transaction.totalPrice())) {
@@ -420,7 +422,7 @@ public abstract class CardOwner extends BaseAgent {
 
             if (!collection.isEmpty()) {
                 // Selling in marketplace
-                if (marketplace != null) {
+                if (marketplace != null && RandomUtils.randomOutcome(parameters.probSellMarket)) {
                     Transaction transaction = selectCardsToSell();
                     if (transaction != null && !transaction.isEmpty()) {
                         if (cardOwner.changeCapital(-Marketplace.calculateSellerFee(transaction))) {
@@ -433,22 +435,24 @@ public abstract class CardOwner extends BaseAgent {
                     }
                 }
 
-                // Trading
-                Set<AID> agents = selectAgentsForTrade();
-                if (!agents.isEmpty()) {
-                    ArrayList<Card> offered = unwantedCards();
-    
-                    if (!offered.isEmpty()) {
-                        StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
-                        " possible agents to trade with.", LogPriority.LOW);
-    
-                        addBehaviour(new TradeOfferInitiator(cardOwner,
-                            new TradeOfferData(wantedCards(), offered), agents));
+                if (RandomUtils.randomOutcome(parameters.probTrade)) {
+                    // Trading
+                    Set<AID> agents = selectAgentsForTrade();
+                    if (!agents.isEmpty()) {
+                        ArrayList<Card> offered = unwantedCards();
+        
+                        if (!offered.isEmpty()) {
+                            StringUtils.logAgentMessage(myAgent, "📢 Found " + agents.size() +
+                            " possible agents to trade with.", LogPriority.LOW);
+        
+                            addBehaviour(new TradeOfferInitiator(cardOwner,
+                                new TradeOfferData(wantedCards(), offered), agents));
+                        }
                     }
                 }
             }
 
-            if (!cardSets.isEmpty()) {
+            if (!cardSets.isEmpty() && RandomUtils.randomOutcome(parameters.probBuyPack)) {
                 CardSet set = selectSet();
                 if (set != null) {
                     purchasePack(set);

@@ -22,7 +22,7 @@ import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
 public class Collector extends CardOwner {
-    private static final int MAX_DESIRED_CARDS = 30, MIN_NEW_CARDS = 5, MAX_NEW_CARDS = 15;
+    private static final int MIN_NEW_CARDS = 10, MAX_NEW_CARDS = 25;
     private Set<Card> desiredCards = new HashSet<>();
     private LinkedHashMap<Card, Long> desiredNotOwned = new LinkedHashMap<>();
 
@@ -56,7 +56,6 @@ public class Collector extends CardOwner {
     @Override
     protected void handleNewCardSet(CardSet set) {
         int newCards = RandomUtils.intRangeInclusive(MIN_NEW_CARDS, MAX_NEW_CARDS);
-        newCards = Math.max(0, Math.min(newCards, MAX_DESIRED_CARDS - desiredCards.size()));
 
         if (newCards > 0) {
             List<Card> newDesired = RandomUtils.sample(set.getCards(), newCards);

@@ -21,6 +21,10 @@ public final class RandomUtils {
         return min + random.nextDouble() * (max - min);
     }
 
+    public static boolean randomOutcome(double probability) {
+        return random.nextDouble() <= probability;
+    }
+
     public static double normalDistribution() {
         return normalDistribution(0, 1);
     }
