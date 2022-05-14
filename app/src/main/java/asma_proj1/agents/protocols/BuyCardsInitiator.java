@@ -8,6 +8,7 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREInitiator;
 import asma_proj1.agents.BaseAgent;
 import asma_proj1.agents.CardOwner;
+import asma_proj1.agents.CardSource;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.utils.StringUtils;
@@ -46,7 +47,7 @@ public class BuyCardsInitiator extends SimpleAchieveREInitiator {
             cardOwner.changeCapital(paidPrice - realPrice);
 
             if (!realTransaction.cards.isEmpty()) {
-                cardOwner.addCardsToCollection(realTransaction.cards);
+                cardOwner.addCardsToCollection(realTransaction.cards, CardSource.MARKETPLACE);
 
                 StringUtils.logAgentMessage(cardOwner, "🛒 Bought " +
                     realTransaction.cards.size() + " cards from marketplace: " +

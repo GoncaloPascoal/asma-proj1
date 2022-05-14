@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -92,7 +91,7 @@ public abstract class CardOwner extends BaseAgent {
     }
 
     protected abstract CardSet selectSet();
-    protected abstract void handleNewCards(List<Card> cards);
+    protected abstract void handleNewCards(List<Card> cards, CardSource source);
 
     protected abstract LinkedHashSet<Card> wantedCards();
     protected abstract ArrayList<Card> unwantedCards();
@@ -100,6 +99,8 @@ public abstract class CardOwner extends BaseAgent {
     protected abstract Set<AID> selectAgentsForTrade();
     public abstract ArrayList<Card> selectCardsForTrade(ArrayList<Card> offered);
     public abstract double evaluateTradeOffer(TradeOffer offer);
+
+    protected abstract int evaluateMaxBuyPrice(Card card);
 
     public Map<Card, Integer> getCollection() {
         return Collections.unmodifiableMap(collection);
@@ -164,15 +165,15 @@ public abstract class CardOwner extends BaseAgent {
             StringUtils.logAgentMessage(this, "Purchased a card pack: " + changeCapitalMessage(-CardSet.PACK_PRICE));
 
             List<Card> pack = set.openPack();
-            addCardsToCollection(pack);
+            addCardsToCollection(pack, CardSource.BOOSTER_PACK);
         }
     }
 
-    public void addCardsToCollection(List<Card> cards) {
+    public void addCardsToCollection(List<Card> cards, CardSource source) {
         for (Card card : cards) {
             collection.compute(card, (k, v) -> v == null ? 1 : v + 1);
         }
-        handleNewCards(cards);
+        handleNewCards(cards, source);
     }
 
     public void removeCardsFromCollection(List<Card> cards) {
@@ -277,7 +278,7 @@ public abstract class CardOwner extends BaseAgent {
         List<Integer> prices = new ArrayList<>();
         int totalPrice = 0;
 
-        List<Card> wanted = new LinkedList<>(wantedCards());
+        List<Card> wanted = new ArrayList<>(wantedCards());
         for (int i = wanted.size() - 1; i >= 0; --i) {
             Card card = wanted.get(i);
             if (latestSnapshot.containsKey(card) || RandomUtils.randomOutcome(0.15 / Math.exp(0.05 * wanted.size()))) {
@@ -314,8 +315,6 @@ public abstract class CardOwner extends BaseAgent {
 
         return transaction;
     }
-
-    protected abstract int evaluateMaxBuyPrice(Card card);
 
     protected int evaluateSellPrice(Card card) {
         if (latestSnapshot.containsKey(card)) {
@@ -377,6 +376,25 @@ public abstract class CardOwner extends BaseAgent {
         }
 
         return new TradeOffer(give, receive);
+    }
+
+    protected double calculatePriceDelta(TradeOffer offer) {
+        double delta = 0;
+
+        for (Card card : offer.give) {
+            if (latestSnapshot.containsKey(card))
+                delta += latestSnapshot.get(card).priceTrend / 100;
+            else
+                delta += basePrice.get(card.getRarity()) / 100;
+        }
+        for (Card card : offer.receive) {
+            if (latestSnapshot.containsKey(card))
+                delta -= latestSnapshot.get(card).priceTrend / 100;
+            else
+                delta -= basePrice.get(card.getRarity()) / 100;
+        }
+        
+        return delta;
     }
 
     private class ReceiveCapital extends TickerBehaviour {

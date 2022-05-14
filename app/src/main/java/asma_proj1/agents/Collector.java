@@ -28,10 +28,13 @@ public class Collector extends CardOwner {
 
     // Used solely for evaluating trade offers
     private static final Map<Rarity, Double> rarityValueMap = Map.of(
-        Rarity.COMMON, 10.0,
-        Rarity.UNCOMMON, 25.0,
-        Rarity.RARE, 100.0
+        Rarity.COMMON, 1.0,
+        Rarity.UNCOMMON, 2.5,
+        Rarity.RARE, 10.0
     );
+
+    // Statistics
+    private final Map<CardSource, Integer> sourceMap = new HashMap<>();
 
     @Override
     protected CardSet selectSet() {
@@ -72,7 +75,7 @@ public class Collector extends CardOwner {
     }
 
     @Override
-    protected void handleNewCards(List<Card> cards) {
+    protected void handleNewCards(List<Card> cards, CardSource source) {
         List<Card> wanted = new ArrayList<>(), unwanted = new ArrayList<>();
 
         for (Card card : cards) {
@@ -92,6 +95,7 @@ public class Collector extends CardOwner {
             StringUtils.logAgentMessage(this, "🍀 Got new wanted cards: " +
                 StringUtils.colorize(StringUtils.cardIds(wanted).toString(), StringUtils.YELLOW),
                 LogPriority.HIGH);
+            sourceMap.compute(source, (k, v) -> v == null ? wanted.size() : v + wanted.size());
         }
 
         if (!unwanted.isEmpty()) {
@@ -152,6 +156,7 @@ public class Collector extends CardOwner {
             value += rarityValueMap.get(card.getRarity());
         }
 
+        value += calculatePriceDelta(offer);
         return value;
     }
 

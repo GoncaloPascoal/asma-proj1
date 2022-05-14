@@ -65,9 +65,7 @@ public final class TestFramework {
                 controller.start();
 
                 mainThreadSleep(300);
-
                 main.kill();
-                System.out.println(marketplace.getCapital());
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
@@ -75,7 +73,8 @@ public final class TestFramework {
         },
         () -> {
             // 10 CompetitivePlayers
-            RandomUtils.random.setSeed(1);
+            RandomUtils.random.setSeed(2);
+            StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
             ContainerController main = runtime.createMainContainer(profile);
 
@@ -99,21 +98,57 @@ public final class TestFramework {
                 
                 controller = main.acceptNewAgent("db", database);
                 controller.start();
+
+                mainThreadSleep(300);
+                main.kill();
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
             }
         },
         () -> {
-            // Mix collectors and competitives
-            RandomUtils.random.setSeed(1);
+            // Mix Collectors and CompetitivePlayers
+            RandomUtils.random.setSeed(3);
+            StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
-            // ContainerController main = runtime.createMainContainer(profile);
+            ContainerController main = runtime.createMainContainer(profile);
 
-            // Marketplace marketplace = new Marketplace();
-            // CardDatabase database = new CardDatabase();
-            // Collector[] collectors = new Collector[5];
-            // CompetitivePlayer[] competitives = new CompetitivePlayer[5];
+            Marketplace marketplace = new Marketplace();
+            CardDatabase database = new CardDatabase();
+            Collector[] collectors = new Collector[6];
+            for (int i = 0; i < collectors.length; ++i) {
+                collectors[i] = new Collector();
+            }
+            CompetitivePlayer[] compPlayers = new CompetitivePlayer[6];
+            for (int i = 0; i < compPlayers.length; ++i) {
+                compPlayers[i] = new CompetitivePlayer();
+            }
+
+            AgentController controller;
+            
+            try {
+                controller = main.acceptNewAgent("market", marketplace);
+                controller.start();
+                
+                for (int i = 0; i < collectors.length; ++i) {
+                    controller = main.acceptNewAgent("c" + (i + 1), collectors[i]);
+                    controller.start();
+                }
+
+                for (int i = 0; i < compPlayers.length; ++i) {
+                    controller = main.acceptNewAgent("p" + (i + 1), compPlayers[i]);
+                    controller.start();
+                }
+                
+                controller = main.acceptNewAgent("db", database);
+                controller.start();
+
+                mainThreadSleep(300);
+                main.kill();
+            }
+            catch (StaleProxyException e) {
+                e.printStackTrace();
+            }
         }
     );
 

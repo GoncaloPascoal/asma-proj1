@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Collections;
 
@@ -29,6 +30,9 @@ public class CompetitivePlayer extends CardOwner {
 
     private CardSet bestSet = null;
 
+    // Statistics
+    private final Map<Card, CardSource> sourceMap = new HashMap<>();
+
     private static double averagePower(CardSet set) {
         double totalPower = 0;
         for (Card card : set.getCards()) {
@@ -41,7 +45,8 @@ public class CompetitivePlayer extends CardOwner {
      * Returns whether or not a card would increase the power of the player's collection.
      */
     private boolean isCardMorePowerful(Card card) {
-        return bestCards.size() < BEST_MAX_SIZE || card.getPower() >= bestCards.first().getPower();
+        return !bestCards.contains(card) && (bestCards.size() < BEST_MAX_SIZE ||
+            card.getPower() >= bestCards.first().getPower());
     }
 
     @Override
@@ -63,17 +68,20 @@ public class CompetitivePlayer extends CardOwner {
     }
 
     @Override
-    protected void handleNewCards(List<Card> cards) {
+    protected void handleNewCards(List<Card> cards, CardSource source) {
         TreeSet<Card> wanted = new TreeSet<>(cardPowerComparator);
         List<Card> unwanted = new ArrayList<>();
 
         for (Card card : cards) {
-            if (!bestCards.contains(card) && isCardMorePowerful(card)) {
+            if (isCardMorePowerful(card)) {
                 if (bestCards.size() == BEST_MAX_SIZE) {
-                    unwanted.add(bestCards.pollFirst());
+                    Card oldCard = bestCards.pollFirst();
+                    unwanted.add(oldCard);
+                    sourceMap.remove(oldCard);
                 }
                 wanted.add(card);
                 bestCards.add(card);
+                sourceMap.put(card, source);
             }
             else {
                 unwanted.add(card);
@@ -144,13 +152,18 @@ public class CompetitivePlayer extends CardOwner {
     public double evaluateTradeOffer(TradeOffer offer) {
         double value = 0;
 
-        // TODO: include marketplace price in calculation as a secondary factor?
         for (Card card : offer.give) {
             if (isCardMorePowerful(card)) {
-                value += card.getPower();
+                if (bestCards.size() < BEST_MAX_SIZE) {
+                    value += 4.0;
+                }
+                else {
+                    value += 20.0 * (card.getPower() - bestCards.first().getPower());
+                }
             }
         }
 
+        value += calculatePriceDelta(offer);
         return value;
     }
 
