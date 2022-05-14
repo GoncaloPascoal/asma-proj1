@@ -50,6 +50,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected void handleAllResponses(Vector responses, Vector acceptances) {
         ACLMessage bestMessage = null;
         double bestValue = 0;
