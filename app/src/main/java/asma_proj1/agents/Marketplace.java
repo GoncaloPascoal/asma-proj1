@@ -103,7 +103,7 @@ public class Marketplace extends BaseAgent {
             
             int count = cardListings.size();
             int minPrice = cardListings.first().price;
-            int averagePrice = cardListings.stream().mapToInt(l -> l.price).sum();
+            double averagePrice = cardListings.stream().mapToInt(l -> l.price).sum() / count;
 
             snapshots.put(card, new Snapshot(count, minPrice, averagePrice));
         }

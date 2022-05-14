@@ -51,6 +51,9 @@ public abstract class CardOwner extends BaseAgent {
         Rarity.RARE, 200
     );
 
+    public String group = "default";
+    public CardOwnerParameters parameters = new CardOwnerParameters();
+
     protected final Map<Card, Integer> collection = new HashMap<>();
     private final Map<Integer, Integer> cardsForTrade = new HashMap<>();
     public final Lock collectionLock = new ReentrantLock();
@@ -59,19 +62,12 @@ public abstract class CardOwner extends BaseAgent {
     protected AID marketplace = null;
     protected Map<Card, Snapshot> latestSnapshot = new HashMap<>();
 
-    private String group;
-    private CardOwnerParameters parameters;
-
     @Override
     protected void setup() {
         super.setup();
 
-        Object[] args = getArguments();
-        group = args.length >= 1 ? args[0].toString() : "default";
-        parameters = args.length >= 2 ? (CardOwnerParameters) args[1] : new CardOwnerParameters();
-
         StringUtils.logAgentMessage(this, "Started in group " +
-            StringUtils.colorize(group, StringUtils.CYAN));
+            StringUtils.colorize(group, StringUtils.CYAN), LogPriority.LOW);
 
         // Trading (yellow pages) setup
         dfd.setName(getAID());
@@ -326,8 +322,8 @@ public abstract class CardOwner extends BaseAgent {
             return (int) (snapshot.averagePrice * multiplier);
         }
 
-        return (int) ((double) basePrice.get(card.getRarity()) *
-            RandomUtils.doubleRangeInclusive(0.9, 1.1));
+        return (int) (basePrice.get(card.getRarity()) *
+            RandomUtils.doubleRangeInclusive(0.8, 1.2));
     }
 
     public TradeOffer generateTradeOffer(TradeOfferData data) {

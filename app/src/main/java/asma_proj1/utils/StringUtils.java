@@ -9,7 +9,7 @@ import jade.core.Agent;
 import asma_proj1.card.Card;
 
 public final class StringUtils {
-    public static final LogPriority MIN_LOG_PRIORITY = LogPriority.LOW;
+    public static LogPriority MIN_LOG_PRIORITY = LogPriority.LOW;
 
     // ANSI color codes
     public static final String RED = "\033[1;31m",
