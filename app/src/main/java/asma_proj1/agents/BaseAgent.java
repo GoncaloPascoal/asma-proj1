@@ -2,6 +2,8 @@ package asma_proj1.agents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -16,7 +18,7 @@ import asma_proj1.card.CardSet;
 import asma_proj1.utils.StringUtils;
 
 public abstract class BaseAgent extends Agent {
-    private int capital = 0;
+    private AtomicInteger capital = new AtomicInteger(0);
     private AID topic;
     protected final List<CardSet> cardSets = new ArrayList<>();
 
@@ -34,7 +36,7 @@ public abstract class BaseAgent extends Agent {
     }
 
     public int getCapital() {
-        return capital;
+        return capital.get();
     }
 
     public AID getTopic() {
@@ -42,14 +44,18 @@ public abstract class BaseAgent extends Agent {
     }
 
     public boolean changeCapital(int delta) {
-        int newCapital = capital + delta;
-        
-        if (newCapital >= 0) {
-            capital = newCapital;
-            return true;
-        }
+        final AtomicBoolean valid = new AtomicBoolean(false);
 
-        return false;
+        capital.updateAndGet(c -> {
+            int newCapital = c + delta;
+            if (newCapital >= 0) {
+                valid.set(true);
+                return newCapital;
+            }
+            return c;
+        });
+
+        return valid.get();
     }
 
     public static String changeCapitalMessage(int delta) {
