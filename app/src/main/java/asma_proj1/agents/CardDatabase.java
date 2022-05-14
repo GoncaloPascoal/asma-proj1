@@ -11,6 +11,7 @@ import jade.lang.acl.ACLMessage;
 
 import asma_proj1.card.CardGenerator;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.StringUtils;
 
 public class CardDatabase extends Agent {
@@ -35,7 +36,7 @@ public class CardDatabase extends Agent {
 
     public void generateCardSet() {
         CardSet set = new CardSet(generator);
-        StringUtils.logAgentMessage(this, "🌱 Generated new card set");
+        StringUtils.logAgentMessage(this, "🌱 Generated new card set", LogPriority.HIGH);
 
         try {
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);

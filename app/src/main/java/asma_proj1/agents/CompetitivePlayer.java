@@ -13,6 +13,7 @@ import jade.core.AID;
 
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 import asma_proj1.agents.protocols.data.Snapshot;
@@ -46,7 +47,11 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     protected void handleNewCardSet(CardSet set) {
-        if (bestSet == null || averagePower(set) > averagePower(bestSet)) {
+        double averageSetPower = averagePower(set);
+        StringUtils.logAgentMessage(this, "🎲 New set has average power of " +
+            StringUtils.colorize(String.format("%.3f", averageSetPower), StringUtils.YELLOW));
+
+        if (bestSet == null || averageSetPower > averagePower(bestSet)) {
             bestSet = set;
         }
 
@@ -91,7 +96,8 @@ public class CompetitivePlayer extends CardOwner {
 
         if (!wanted.isEmpty()) {
             StringUtils.logAgentMessage(this, "🍀 Got " + wanted.size() + " more powerful cards. Card power range: " +
-                StringUtils.colorize(String.format("[%.3f, %.3f]", bestCards.first().getPower(), bestCards.last().getPower()), StringUtils.YELLOW));
+                StringUtils.colorize(String.format("[%.3f, %.3f]", bestCards.first().getPower(), bestCards.last().getPower()), StringUtils.YELLOW),
+                LogPriority.HIGH);
         }
 
         if (!unwanted.isEmpty()) {

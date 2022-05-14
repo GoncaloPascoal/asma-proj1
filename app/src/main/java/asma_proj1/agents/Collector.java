@@ -18,6 +18,7 @@ import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
 import asma_proj1.card.Rarity;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
@@ -66,7 +67,8 @@ public class Collector extends CardOwner {
 
             List<String> ids = StringUtils.cardIds(newDesired);
             StringUtils.logAgentMessage(this, "⭐ Wishes to collect " + ids.size() +
-                " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW));
+                " new cards: " + StringUtils.colorize(ids.toString(), StringUtils.YELLOW),
+                LogPriority.HIGH);
         }
     }
 
@@ -89,7 +91,8 @@ public class Collector extends CardOwner {
 
         if (!wanted.isEmpty()) {
             StringUtils.logAgentMessage(this, "🍀 Got new wanted cards: " +
-                StringUtils.colorize(StringUtils.cardIds(wanted).toString(), StringUtils.YELLOW));
+                StringUtils.colorize(StringUtils.cardIds(wanted).toString(), StringUtils.YELLOW),
+                LogPriority.HIGH);
         }
 
         if (!unwanted.isEmpty()) {
