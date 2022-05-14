@@ -1,6 +1,5 @@
 package asma_proj1.test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import jade.core.Profile;
@@ -97,12 +96,12 @@ public final class TestFramework {
             // Mix collectors and competitives
             RandomUtils.random.setSeed(1);
 
-            ContainerController main = runtime.createMainContainer(profile);
+            // ContainerController main = runtime.createMainContainer(profile);
 
-            Marketplace marketplace = new Marketplace();
-            CardDatabase database = new CardDatabase();
-            Collector[] collectors = new Collector[5];
-            CompetitivePlayer[] competitives = new CompetitivePlayer[5];
+            // Marketplace marketplace = new Marketplace();
+            // CardDatabase database = new CardDatabase();
+            // Collector[] collectors = new Collector[5];
+            // CompetitivePlayer[] competitives = new CompetitivePlayer[5];
         }
     );
 
@@ -123,6 +122,6 @@ public final class TestFramework {
     }
 
     public static void runDefaultSimulation() {
-        ContainerController main = runtime.createMainContainer(profile);
+        // ContainerController main = runtime.createMainContainer(profile);
     }
 }

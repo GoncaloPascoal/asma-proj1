@@ -14,5 +14,8 @@ public class App {
                 System.err.println("Test number must be an integer.");
             }
         }
+        else {
+            TestFramework.runDefaultSimulation();
+        }
     }
 }

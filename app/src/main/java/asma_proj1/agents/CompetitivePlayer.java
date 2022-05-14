@@ -16,7 +16,6 @@ import asma_proj1.card.CardSet;
 import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
-import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 
@@ -47,11 +46,7 @@ public class CompetitivePlayer extends CardOwner {
 
     @Override
     protected void handleNewCardSet(CardSet set) {
-        double averageSetPower = averagePower(set);
-        StringUtils.logAgentMessage(this, "🎲 New set has average power of " +
-            StringUtils.colorize(String.format("%.3f", averageSetPower), StringUtils.YELLOW));
-
-        if (bestSet == null || averageSetPower > averagePower(bestSet)) {
+        if (bestSet == null || averagePower(set) > averagePower(bestSet)) {
             bestSet = set;
         }
 
@@ -165,9 +160,8 @@ public class CompetitivePlayer extends CardOwner {
 
         double base;
 
-        if (latestSnapshot.containsKey(card)) {
-            Snapshot snapshot = latestSnapshot.get(card);
-            base = (snapshot.minPrice *
+        if (latestSnapshot.containsKey(card) && latestSnapshot.get(card).minPrice != null) {
+            base = (latestSnapshot.get(card).minPrice *
                 RandomUtils.doubleRangeInclusive(1.1, 1.4));
         }
         else {

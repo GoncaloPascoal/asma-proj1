@@ -13,7 +13,6 @@ import java.util.Set;
 
 import jade.core.AID;
 
-import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
@@ -163,9 +162,8 @@ public class Collector extends CardOwner {
         double elapsedSeconds = System.nanoTime() - desiredNotOwned.get(card) / 1e9;
         double base;
 
-        if (latestSnapshot.containsKey(card)) {
-            Snapshot snapshot = latestSnapshot.get(card);
-            base = (snapshot.minPrice *
+        if (latestSnapshot.containsKey(card) && latestSnapshot.get(card).minPrice != null) {
+            base = (latestSnapshot.get(card).minPrice *
                 RandomUtils.doubleRangeInclusive(1.1, 1.4));
         }
         else {

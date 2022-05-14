@@ -15,8 +15,8 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
-
 import jade.proto.SubscriptionResponder.Subscription;
+
 import asma_proj1.agents.protocols.BuyCardsResponder;
 import asma_proj1.agents.protocols.MarketplaceSubscriptionResponder;
 import asma_proj1.agents.protocols.SellCardsResponder;
@@ -24,6 +24,7 @@ import asma_proj1.agents.protocols.SnapshotResponder;
 import asma_proj1.agents.protocols.data.Snapshot;
 import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
+import asma_proj1.card.Rarity;
 import asma_proj1.utils.StringUtils;
 
 public class Marketplace extends BaseAgent {
@@ -34,8 +35,10 @@ public class Marketplace extends BaseAgent {
 
     public static final int MIN_SELLER_FEE = 3;
     public static final double SELLER_FEE = 0.05, BUYER_FEE = 0.05;
+    private static final double TREND_FACTOR = 0.9;
 
     private final Map<Card, TreeSet<Listing>> listings = new HashMap<>();
+    private final Map<Card, Double> priceTrends = new HashMap<>();
     private final Map<AID, Subscription> subscriptions = new HashMap<>();
 
     @Override
@@ -92,20 +95,24 @@ public class Marketplace extends BaseAgent {
         synchronized (listings) {
             listings.putIfAbsent(card, new TreeSet<>());
             listings.get(card).add(listing);
+            priceTrends.compute(card, (k, v) -> v == null ? listing.price :
+                TREND_FACTOR * v + (1 - TREND_FACTOR) * listing.price);
         }
     }
 
     public HashMap<Card, Snapshot> generateSnapshot() {
         HashMap<Card, Snapshot> snapshots = new HashMap<>();
 
-        for (Card card : listings.keySet()) {
-            TreeSet<Listing> cardListings = listings.get(card);
-            
-            int count = cardListings.size();
-            int minPrice = cardListings.first().price;
-            double averagePrice = cardListings.stream().mapToInt(l -> l.price).sum() / count;
-
-            snapshots.put(card, new Snapshot(count, minPrice, averagePrice));
+        synchronized (listings) {
+            for (Card card : listings.keySet()) {
+                TreeSet<Listing> cardListings = listings.get(card);
+    
+                int count = cardListings.size();
+                Integer minPrice = cardListings.isEmpty() ? null : cardListings.first().price;
+                double priceTrend = priceTrends.get(card);
+    
+                snapshots.put(card, new Snapshot(count, minPrice, priceTrend));
+            }
         }
 
         return snapshots;
@@ -164,10 +171,6 @@ public class Marketplace extends BaseAgent {
             }
 
             listings.get(card).remove(first);
-            if (listings.get(card).isEmpty()) {
-                listings.remove(card);
-            }
-
             return first;
         }
         catch (NoSuchElementException e) {
@@ -176,9 +179,21 @@ public class Marketplace extends BaseAgent {
     }
 
     private String cardInformation(Card card) {
+        String info = "• " + card.idRarity() + ":\t";
+        if (card.getRarity() == Rarity.RARE) info += " ";
+
         TreeSet<Listing> cardListings = listings.get(card);
-        return String.format("• %s: %d, from %.2f 💵", card.idRarity(),
-            cardListings.size(), (double) cardListings.first().price / 100);
+        if (!cardListings.isEmpty()) {
+            info += String.format("%d, from %.2f 💵 | ", cardListings.size(),
+                (double) cardListings.first().price / 100);
+        }
+        else {
+            info += String.format(" not available  | ");
+        }
+
+        info += String.format("Trend: %.2f 💵", priceTrends.get(card) / 100);
+
+        return info;
     }
 
     private String cardInformation() {
@@ -186,7 +201,7 @@ public class Marketplace extends BaseAgent {
 
         synchronized (listings) {
             for (Card card : listings.keySet()) {
-                builder.append("\n    ").append(cardInformation(card));
+                builder.append("\n  ").append(cardInformation(card));
             }
         }
 
@@ -194,12 +209,12 @@ public class Marketplace extends BaseAgent {
     }
 
     private class LogInformation extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 120;
+        private static final int INTERVAL_SECONDS = 30;
 
         public LogInformation(Marketplace marketplace) {
             super(marketplace, INTERVAL_SECONDS * 1000);
         }
-        
+
         @Override
         protected void onTick() {
             String information = String.format("Accumulated capital: %.2f 💵", (double) getCapital() / 100);

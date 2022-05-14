@@ -50,6 +50,11 @@ public abstract class CardOwner extends BaseAgent {
         Rarity.UNCOMMON, 50,
         Rarity.RARE, 200
     );
+    private static final Map<Rarity, Double> priceDecay = Map.of(
+        Rarity.COMMON, 0.018,
+        Rarity.UNCOMMON, 0.03,
+        Rarity.RARE, 0.06
+    );
 
     public String group = "default";
     public CardOwnerParameters parameters = new CardOwnerParameters();
@@ -253,6 +258,7 @@ public abstract class CardOwner extends BaseAgent {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType(Marketplace.SERVICE_TYPE);
+        template.addServices(sd);
 
         try {
             DFAgentDescription[] results = DFService.search(this, template);
@@ -274,7 +280,7 @@ public abstract class CardOwner extends BaseAgent {
         List<Card> wanted = new LinkedList<>(wantedCards());
         for (int i = wanted.size() - 1; i >= 0; --i) {
             Card card = wanted.get(i);
-            if (latestSnapshot.containsKey(card) || RandomUtils.randomOutcome(0.15)) {
+            if (latestSnapshot.containsKey(card) || RandomUtils.randomOutcome(0.15 / Math.exp(0.05 * wanted.size()))) {
                 int maxPrice = evaluateMaxBuyPrice(card);
                 if (totalPrice + maxPrice <= parameters.marketCapitalLimit * getCapital()) {
                     totalPrice += maxPrice;
@@ -315,15 +321,20 @@ public abstract class CardOwner extends BaseAgent {
         if (latestSnapshot.containsKey(card)) {
             Snapshot snapshot = latestSnapshot.get(card);
 
-            // TODO: custom parameters depending on rarity
-            double multiplier = 1.05 / Math.min(0.85, Math.exp(0.0035 * snapshot.count));
+            double multiplier = Math.max(
+                1.2 / Math.exp(priceDecay.get(card.getRarity()) * snapshot.priceTrend),
+                0.8
+            );
             multiplier *= RandomUtils.doubleRangeInclusive(0.95, 1.05);
 
-            return (int) (snapshot.averagePrice * multiplier);
+            return Math.max(
+                (int) (snapshot.priceTrend * multiplier),
+                Marketplace.MIN_SELLER_FEE + 1
+            );
         }
 
         return (int) (basePrice.get(card.getRarity()) *
-            RandomUtils.doubleRangeInclusive(0.8, 1.2));
+            RandomUtils.doubleRangeInclusive(0.65, 1.35));
     }
 
     public TradeOffer generateTradeOffer(TradeOfferData data) {
