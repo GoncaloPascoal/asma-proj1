@@ -35,7 +35,7 @@ public class Collector extends CardOwner {
     );
 
     // Statistics
-    private final Map<CardSource, Integer> sourceMap = new HashMap<>();
+    public final Map<CardSource, Integer> sourceMap = new HashMap<>();
 
     @Override
     protected CardSet selectSet() {

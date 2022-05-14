@@ -38,6 +38,7 @@ public class MarketplaceSubscriptionInitiator extends SubscriptionInitiator {
     protected void handleInform(ACLMessage inform) {
         int income = Integer.valueOf(inform.getContent());
         cardOwner.changeCapital(income);
+        cardOwner.marketplaceIncome.addAndGet(income);
         StringUtils.logAgentMessage(cardOwner, "💰 Received marketplace income: "
             + BaseAgent.changeCapitalMessage(income));
     }

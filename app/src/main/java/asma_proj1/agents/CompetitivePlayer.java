@@ -32,7 +32,7 @@ public class CompetitivePlayer extends CardOwner {
     private CardSet bestSet = null;
 
     // Statistics
-    private final Map<Card, CardSource> sourceMap = new HashMap<>();
+    public final Map<Card, CardSource> sourceMap = new HashMap<>();
 
     private static double averagePower(CardSet set) {
         double totalPower = 0;

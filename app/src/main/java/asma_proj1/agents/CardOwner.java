@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -67,6 +68,11 @@ public abstract class CardOwner extends BaseAgent {
     protected AID marketplace = null;
     protected Map<Card, Snapshot> latestSnapshot = new HashMap<>();
 
+    // Statistics
+    public int packsBought = 0;
+    public AtomicInteger marketplaceIncome = new AtomicInteger(0),
+        spentInMarketplace = new AtomicInteger(0);
+
     @Override
     protected void setup() {
         super.setup();
@@ -121,6 +127,25 @@ public abstract class CardOwner extends BaseAgent {
         }
 
         return true;
+    }
+
+    public double estimatedCollectionValue() {
+        double value = 0;
+
+        for (Card card : collection.keySet()) {
+            double cardValue;
+
+            if (latestSnapshot.containsKey(card)) {
+                cardValue = latestSnapshot.get(card).priceTrend;
+            }
+            else {
+                cardValue = basePrice.get(card.getRarity());
+            }
+
+            value += cardValue * collection.get(card);
+        }
+
+        return value;
     }
 
     protected Set<AID> selectAgentsWithCards(Set<Card> cards) {
@@ -451,10 +476,12 @@ public abstract class CardOwner extends BaseAgent {
                 if (marketplace != null && RandomUtils.randomOutcome(parameters.probSellMarket)) {
                     Transaction transaction = selectCardsToSell();
                     if (transaction != null && !transaction.isEmpty()) {
-                        if (cardOwner.changeCapital(-Marketplace.calculateSellerFee(transaction))) {
+                        int sellerFee = Marketplace.calculateSellerFee(transaction);
+                        if (cardOwner.changeCapital(-sellerFee)) {
                             cardOwner.collectionLock.lock();
                             cardOwner.removeCardsFromCollection(transaction.cards);
                             cardOwner.collectionLock.unlock();
+                            spentInMarketplace.addAndGet(-sellerFee);
                             addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
                             block(500);
                         }
@@ -482,6 +509,7 @@ public abstract class CardOwner extends BaseAgent {
                 CardSet set = selectSet();
                 if (set != null) {
                     purchasePack(set);
+                    ++packsBought;
                 }
             }
         }
