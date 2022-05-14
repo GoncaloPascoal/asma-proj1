@@ -16,6 +16,7 @@ import jade.core.AID;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.card.CardSource;
 import asma_proj1.card.Rarity;
 import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;

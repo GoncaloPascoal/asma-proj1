@@ -12,9 +12,9 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
 
 import asma_proj1.agents.CardOwner;
-import asma_proj1.agents.CardSource;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
+import asma_proj1.card.CardSource;
 
 public class TradeOfferResponder extends ContractNetResponder {
     private CardOwner cardOwner;

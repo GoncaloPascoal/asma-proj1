@@ -11,9 +11,9 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 import asma_proj1.agents.CardOwner;
-import asma_proj1.agents.CardSource;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
+import asma_proj1.card.CardSource;
 import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.StringUtils;
 

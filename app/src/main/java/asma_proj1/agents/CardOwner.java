@@ -36,6 +36,7 @@ import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.agents.protocols.data.Transaction;
 import asma_proj1.card.Card;
 import asma_proj1.card.CardSet;
+import asma_proj1.card.CardSource;
 import asma_proj1.card.Rarity;
 import asma_proj1.utils.ConversionUtils;
 import asma_proj1.utils.LogPriority;

@@ -6,11 +6,12 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREInitiator;
+
 import asma_proj1.agents.BaseAgent;
 import asma_proj1.agents.CardOwner;
-import asma_proj1.agents.CardSource;
 import asma_proj1.agents.Marketplace;
 import asma_proj1.agents.protocols.data.Transaction;
+import asma_proj1.card.CardSource;
 import asma_proj1.utils.StringUtils;
 
 public class BuyCardsInitiator extends SimpleAchieveREInitiator {

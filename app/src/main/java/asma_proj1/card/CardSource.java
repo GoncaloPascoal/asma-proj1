@@ -1,4 +1,4 @@
-package asma_proj1.agents;
+package asma_proj1.card;
 
 public enum CardSource {
     BOOSTER_PACK,
