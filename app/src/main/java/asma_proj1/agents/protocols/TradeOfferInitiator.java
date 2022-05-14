@@ -96,7 +96,7 @@ public class TradeOfferInitiator extends ContractNetInitiator {
             bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 
             StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer (value = " +
-                StringUtils.colorize(String.format("%.4f", bestValue), StringUtils.CYAN) +
+                StringUtils.colorize(String.format("%.3f", bestValue), StringUtils.CYAN) +
                 "):\n" + bestOffer);
 
             cardOwner.collectionLock.unlock();

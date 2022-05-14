@@ -22,12 +22,22 @@ public final class TestFramework {
     private static final Profile profile = new ProfileImpl();
 
     static {
+        runtime.setCloseVM(true);
         profile.setParameter(Profile.SERVICES, "jade.core.messaging.TopicManagementService");
+    }
+
+    private static void mainThreadSleep(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static final List<Runnable> tests = List.of(
         () -> {
-            // Collectors
+            // 10 Collectors
             RandomUtils.random.setSeed(1);
             StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
@@ -43,9 +53,6 @@ public final class TestFramework {
             AgentController controller;
 
             try {
-                controller = main.createNewAgent("rma", "jade.tools.rma.rma", null);
-                controller.start();
-
                 controller = main.acceptNewAgent("marketplace", marketplace);
                 controller.start();
 
@@ -56,22 +63,27 @@ public final class TestFramework {
 
                 controller = main.acceptNewAgent("db", database);
                 controller.start();
+
+                mainThreadSleep(300);
+
+                main.kill();
+                System.out.println(marketplace.getCapital());
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
             }
         },
         () -> {
-            // Competitives
+            // 10 CompetitivePlayers
             RandomUtils.random.setSeed(1);
 
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
             CardDatabase database = new CardDatabase();
-            CompetitivePlayer[] competitives = new CompetitivePlayer[10];
-            for (int i = 0; i < competitives.length; ++i) {
-                competitives[i] = new CompetitivePlayer();
+            CompetitivePlayer[] compPlayers = new CompetitivePlayer[10];
+            for (int i = 0; i < compPlayers.length; ++i) {
+                compPlayers[i] = new CompetitivePlayer();
             }
 
             AgentController controller;
@@ -80,8 +92,8 @@ public final class TestFramework {
                 controller = main.acceptNewAgent("market", marketplace);
                 controller.start();
                 
-                for (int i = 0; i < competitives.length; ++i) {
-                    controller = main.acceptNewAgent("p" + (i + 1), competitives[i]);
+                for (int i = 0; i < compPlayers.length; ++i) {
+                    controller = main.acceptNewAgent("p" + (i + 1), compPlayers[i]);
                     controller.start();
                 }
                 

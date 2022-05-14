@@ -50,7 +50,7 @@ public class CardDatabase extends Agent {
     }
 
     private class GenerateCardSet extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 300;
+        private static final int INTERVAL_SECONDS = 600;
 
         public GenerateCardSet(CardDatabase database) {
             super(database, INTERVAL_SECONDS * 1000);
