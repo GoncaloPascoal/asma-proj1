@@ -72,7 +72,7 @@ public final class TestFramework {
             CardDatabase database = new CardDatabase();
             CompetitivePlayer[] competitives = new CompetitivePlayer[10];
             for (int i = 0; i < competitives.length; ++i) {
-                competitives[i] = new Collector();
+                competitives[i] = new CompetitivePlayer();
             }
 
             AgentController controller;
