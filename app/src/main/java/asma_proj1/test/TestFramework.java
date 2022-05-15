@@ -20,7 +20,6 @@ import asma_proj1.agents.CardDatabase;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Collector;
 import asma_proj1.agents.CompetitivePlayer;
-import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
@@ -174,7 +173,6 @@ public final class TestFramework {
         () -> {
             // Only Collectors
             RandomUtils.random.setSeed(1);
-            StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
             ContainerController main = runtime.createMainContainer(profile);
 
@@ -212,7 +210,6 @@ public final class TestFramework {
         () -> {
             // Only CompetitivePlayers
             RandomUtils.random.setSeed(2);
-            StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
             ContainerController main = runtime.createMainContainer(profile);
 
@@ -222,7 +219,7 @@ public final class TestFramework {
             fillArray(compPlayers, () -> new CompetitivePlayer());
 
             AgentController controller;
-            
+
             try {
                 controller = main.acceptNewAgent("market", marketplace);
                 controller.start();
@@ -250,7 +247,6 @@ public final class TestFramework {
         () -> {
             // Mix Collectors and CompetitivePlayers
             RandomUtils.random.setSeed(3);
-            StringUtils.MIN_LOG_PRIORITY = LogPriority.MEDIUM;
 
             ContainerController main = runtime.createMainContainer(profile);
 
@@ -264,12 +260,12 @@ public final class TestFramework {
             AgentController controller;
             
             try {
-                controller = main.acceptNewAgent("market", marketplace);
+                controller = main.acceptNewAgent("marketplace", marketplace);
                 controller.start();
 
                 startAgents(main, collectors, "c");
                 startAgents(main, compPlayers, "p");
-                
+
                 controller = main.acceptNewAgent("db", database);
                 controller.start();
 
@@ -289,6 +285,169 @@ public final class TestFramework {
                 System.out.println("🎲 ---- CompetitivePlayers ---- 🎲");
                 printCompetitivePlayerStatistics(compPlayers);
                 printCardOwnerStatistics(compPlayers);
+            }
+            catch (StaleProxyException e) {
+                e.printStackTrace();
+            }
+        },
+        () -> {
+            // Groups
+            RandomUtils.random.setSeed(4);
+
+            ContainerController main = runtime.createMainContainer(profile);
+
+            Marketplace marketplace = new Marketplace();
+            CardDatabase database = new CardDatabase();
+            Collector[] group1 = new Collector[4];
+            fillArray(group1, () -> {
+                Collector c = new Collector();
+                c.group = "g1";
+                return c;
+            });
+            Collector[] group2 = new Collector[8];
+            fillArray(group2, () -> {
+                Collector c = new Collector();
+                c.group = "g2";
+                return c;
+            });
+
+            AgentController controller;
+            try {
+                controller = main.acceptNewAgent("marketplace", marketplace);
+                controller.start();
+
+                startAgents(main, group1, "cs");
+                startAgents(main, group2, "cb");
+
+                controller = main.acceptNewAgent("db", database);
+                controller.start();
+
+                mainThreadSleep(180);
+                main.kill();
+
+                System.out.print("\n\n------------ 📊 TEST STATISTICS 📊 ------------\n\n");
+                System.out.println(displayCapitalStatistic(
+                    "Marketplace capital (obtained through fees)",
+                    marketplace.getCapital()
+                ));
+
+                System.out.println("---------- Group 1 ----------");
+                printCollectorStatistics(group1);
+                printCardOwnerStatistics(group1);
+
+                System.out.println("---------- Group 2 ----------");
+                printCollectorStatistics(group2);
+                printCardOwnerStatistics(group2);
+            }
+            catch (StaleProxyException e) {
+                e.printStackTrace();
+            }
+        },
+        () -> {
+            // Preferences: Collectors
+            RandomUtils.random.setSeed(5);
+
+            ContainerController main = runtime.createMainContainer(profile);
+
+            Marketplace marketplace = new Marketplace();
+            CardDatabase database = new CardDatabase();
+            Collector[] tradingAgents = new Collector[5];
+            fillArray(tradingAgents, () -> {
+                Collector c = new Collector();
+                c.parameters.probBuyMarket = 0.1;
+                c.parameters.probSellMarket = 0.1;
+                return c;
+            });
+            Collector[] marketplaceAgents = new Collector[5];
+            fillArray(marketplaceAgents, () -> {
+                Collector c = new Collector();
+                c.parameters.probTrade = 0.1;
+                return c;
+            });
+            Collector[] otherAgents = new Collector[5];
+            fillArray(otherAgents, () -> new Collector());
+
+            AgentController controller;
+            try {
+                controller = main.acceptNewAgent("marketplace", marketplace);
+                controller.start();
+
+                startAgents(main, tradingAgents, "ct");
+                startAgents(main, marketplaceAgents, "cm");
+                startAgents(main, otherAgents, "o");
+
+                controller = main.acceptNewAgent("db", database);
+                controller.start();
+
+                mainThreadSleep(180);
+                main.kill();
+
+                System.out.print("\n\n------------ 📊 TEST STATISTICS 📊 ------------\n\n");
+                System.out.println(displayCapitalStatistic(
+                    "Marketplace capital (obtained through fees)",
+                    marketplace.getCapital()
+                ));
+
+                System.out.println("🤝 ---------- Trading ---------- 🤝");
+                printCollectorStatistics(tradingAgents);
+
+                System.out.println("🏦 -------- Marketplace -------- 🏦");
+                printCollectorStatistics(marketplaceAgents);
+            }
+            catch (StaleProxyException e) {
+                e.printStackTrace();
+            }
+        },
+        () -> {
+            // Preferences: CompetitivePlayers
+            RandomUtils.random.setSeed(6);
+
+            ContainerController main = runtime.createMainContainer(profile);
+
+            Marketplace marketplace = new Marketplace();
+            CardDatabase database = new CardDatabase();
+            CompetitivePlayer[] tradingAgents = new CompetitivePlayer[5];
+            fillArray(tradingAgents, () -> {
+                CompetitivePlayer c = new CompetitivePlayer();
+                c.parameters.probBuyMarket = 0.1;
+                c.parameters.probSellMarket = 0.1;
+                return c;
+            });
+            CompetitivePlayer[] marketplaceAgents = new CompetitivePlayer[5];
+            fillArray(marketplaceAgents, () -> {
+                CompetitivePlayer c = new CompetitivePlayer();
+                c.parameters.probTrade = 0.1;
+                return c;
+            });
+            Collector[] otherAgents = new Collector[5];
+            fillArray(otherAgents, () -> new Collector());
+
+            AgentController controller;
+            try {
+                controller = main.acceptNewAgent("marketplace", marketplace);
+                controller.start();
+
+                startAgents(main, tradingAgents, "ct");
+                startAgents(main, marketplaceAgents, "cm");
+                startAgents(main, otherAgents, "o");
+
+                controller = main.acceptNewAgent("db", database);
+                controller.start();
+
+                mainThreadSleep(180);
+                main.kill();
+
+                System.out.print("\n\n------------ 📊 TEST STATISTICS 📊 ------------\n\n");
+                System.out.println(displayCapitalStatistic(
+                    "Marketplace capital (obtained through fees)",
+                    marketplace.getCapital()
+                ));
+
+                System.out.println("🤝 ---------- Trading ---------- 🤝");
+                printCompetitivePlayerStatistics(tradingAgents);
+
+                System.out.println("🏦 -------- Marketplace -------- 🏦");
+                printCompetitivePlayerStatistics(marketplaceAgents);
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
