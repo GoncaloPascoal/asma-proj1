@@ -99,7 +99,8 @@ public class TradeOfferInitiator extends ContractNetInitiator {
                 cardOwner.removeCardsFromCollection(bestOffer.receive);
                 bestMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
     
-                StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer (value = " +
+                StringUtils.logAgentMessage(myAgent, "✅ Accepting best trade offer from " +
+                    ((AID) bestMessage.getAllReceiver().next()).getLocalName() + " (value = " +
                     StringUtils.colorize(String.format("%.3f", bestValue), StringUtils.CYAN) +
                     "):\n" + bestOffer);
     
@@ -118,5 +119,8 @@ public class TradeOfferInitiator extends ContractNetInitiator {
     @Override
     protected void handleFailure(ACLMessage failure) {
         StringUtils.logAgentError(cardOwner, "Trade offer failure: " + failure.getContent());
+        cardOwner.collectionLock.lock();
+        cardOwner.addCardsToCollection(bestOffer.receive, CardSource.TRADING);
+        cardOwner.collectionLock.unlock();
     }
 }

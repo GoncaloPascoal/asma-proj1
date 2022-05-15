@@ -68,7 +68,7 @@ public class TradeOfferResponder extends ContractNetResponder {
                 throw new FailureException("Trade is no longer possible.");
             }
             cardOwner.removeCardsFromCollection(offer.give);
-            cardOwner.addCardsToCollection(offer.receive, CardSource.MARKETPLACE);
+            cardOwner.addCardsToCollection(offer.receive, CardSource.TRADING);
         }
         catch (UnreadableException e) {
             e.printStackTrace();

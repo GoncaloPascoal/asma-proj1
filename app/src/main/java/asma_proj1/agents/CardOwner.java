@@ -410,18 +410,18 @@ public abstract class CardOwner extends BaseAgent {
 
         for (Card card : offer.give) {
             if (latestSnapshot.containsKey(card))
-                delta += latestSnapshot.get(card).priceTrend / 100;
+                delta += latestSnapshot.get(card).priceTrend;
             else
-                delta += basePrice.get(card.getRarity()) / 100;
+                delta += basePrice.get(card.getRarity());
         }
         for (Card card : offer.receive) {
             if (latestSnapshot.containsKey(card))
-                delta -= latestSnapshot.get(card).priceTrend / 100;
+                delta -= latestSnapshot.get(card).priceTrend;
             else
-                delta -= basePrice.get(card.getRarity()) / 100;
+                delta -= basePrice.get(card.getRarity());
         }
-        
-        return delta;
+
+        return delta / 100;
     }
 
     private class ReceiveCapital extends TickerBehaviour {
