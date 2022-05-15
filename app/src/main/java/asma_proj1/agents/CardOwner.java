@@ -482,7 +482,7 @@ public abstract class CardOwner extends BaseAgent {
                             cardOwner.collectionLock.lock();
                             cardOwner.removeCardsFromCollection(transaction.cards);
                             cardOwner.collectionLock.unlock();
-                            spentInMarketplace.addAndGet(-sellerFee);
+                            marketplaceIncome.addAndGet(-sellerFee);
                             addBehaviour(new SellCardsInitiator(cardOwner, marketplace, transaction));
                             block(500);
                         }

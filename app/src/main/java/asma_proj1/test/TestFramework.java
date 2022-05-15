@@ -395,25 +395,18 @@ public final class TestFramework {
             }
         },
         () -> {
-            // Preferences: CompetitivePlayers
+            // Avoids buying card packs
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
             CardDatabase database = new CardDatabase();
-            CompetitivePlayer[] tradingAgents = new CompetitivePlayer[5];
-            fillArray(tradingAgents, () -> {
-                CompetitivePlayer c = new CompetitivePlayer();
-                c.parameters.probBuyMarket = 0.1;
-                c.parameters.probSellMarket = 0.1;
+            Collector[] avoidPackAgents = new Collector[6];
+            fillArray(avoidPackAgents, () -> {
+                Collector c = new Collector();
+                c.parameters.probBuyPack = 0.1;
                 return c;
             });
-            CompetitivePlayer[] marketplaceAgents = new CompetitivePlayer[5];
-            fillArray(marketplaceAgents, () -> {
-                CompetitivePlayer c = new CompetitivePlayer();
-                c.parameters.probTrade = 0.1;
-                return c;
-            });
-            Collector[] otherAgents = new Collector[5];
+            Collector[] otherAgents = new Collector[6];
             fillArray(otherAgents, () -> new Collector());
 
             AgentController controller;
@@ -421,8 +414,7 @@ public final class TestFramework {
                 controller = main.acceptNewAgent("marketplace", marketplace);
                 controller.start();
 
-                startAgents(main, tradingAgents, "ct");
-                startAgents(main, marketplaceAgents, "cm");
+                startAgents(main, avoidPackAgents, "c");
                 startAgents(main, otherAgents, "o");
 
                 controller = main.acceptNewAgent("db", database);
@@ -437,13 +429,13 @@ public final class TestFramework {
                     marketplace.getCapital()
                 ));
 
-                System.out.println("🤝 ---------- Trading ---------- 🤝");
-                printCompetitivePlayerStatistics(tradingAgents);
-                printCardOwnerStatistics(tradingAgents);
+                System.out.println("-------- Avoid Packs --------");
+                printCollectorStatistics(avoidPackAgents);
+                printCardOwnerStatistics(avoidPackAgents);
 
-                System.out.println("🏦 -------- Marketplace -------- 🏦");
-                printCompetitivePlayerStatistics(marketplaceAgents);
-                printCardOwnerStatistics(marketplaceAgents);
+                System.out.println("----------- Other -----------");
+                printCollectorStatistics(otherAgents);
+                printCardOwnerStatistics(otherAgents);
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();

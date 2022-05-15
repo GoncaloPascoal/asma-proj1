@@ -15,6 +15,7 @@ import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.protocols.data.TradeOffer;
 import asma_proj1.agents.protocols.data.TradeOfferData;
 import asma_proj1.card.CardSource;
+import asma_proj1.utils.RandomUtils;
 
 public class TradeOfferResponder extends ContractNetResponder {
     private CardOwner cardOwner;
@@ -31,6 +32,10 @@ public class TradeOfferResponder extends ContractNetResponder {
     @Override
     protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException,
             FailureException, NotUnderstoodException {
+        if (!RandomUtils.randomOutcome(cardOwner.parameters.probTrade)) {
+            throw new RefuseException("Agent does not wish to trade.");
+        }
+
         try {
             data = (TradeOfferData) cfp.getContentObject();
         }
