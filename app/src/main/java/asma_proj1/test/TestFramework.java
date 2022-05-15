@@ -59,23 +59,27 @@ public final class TestFramework {
 
     private static void printCardOwnerStatistics(CardOwner[] cardOwners) {
         double estimatedCollectionValue = 0.0,
-            marketplaceIncome = 0.0, spentInMarketplace = 0.0, spentInPacks = 0.0;
+            marketplaceIncome = 0.0, spentInMarketplace = 0.0, spentInPacks = 0.0,
+            remainingCapital = 0.0;
         for (CardOwner cardOwner : cardOwners) {
             estimatedCollectionValue += cardOwner.estimatedCollectionValue();
             marketplaceIncome += cardOwner.marketplaceIncome.get();
             spentInMarketplace += cardOwner.spentInMarketplace.get();
             spentInPacks += cardOwner.packsBought * CardSet.PACK_PRICE;
+            remainingCapital += cardOwner.getCapital();
         }
         estimatedCollectionValue /= cardOwners.length;
         marketplaceIncome /= cardOwners.length;
         spentInMarketplace /= cardOwners.length;
         spentInPacks /= cardOwners.length;
+        remainingCapital /= cardOwners.length;
 
         String statistics = displayCapitalStatistic("Average estimated collection value", 
             estimatedCollectionValue) + displayCapitalStatistic("Average marketplace income",
             marketplaceIncome) + displayCapitalStatistic("Average capital spent in marketplace",
             spentInMarketplace) + displayCapitalStatistic("Average capital spent in booster packs",
-            spentInPacks);
+            spentInPacks) + displayCapitalStatistic("Average remaining capital (to spend)",
+            remainingCapital);
         
         System.out.print(statistics);
     }
@@ -172,8 +176,6 @@ public final class TestFramework {
     private static final List<Runnable> tests = List.of(
         () -> {
             // Only Collectors
-            RandomUtils.random.setSeed(1);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -209,8 +211,6 @@ public final class TestFramework {
         },
         () -> {
             // Only CompetitivePlayers
-            RandomUtils.random.setSeed(2);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -246,8 +246,6 @@ public final class TestFramework {
         },
         () -> {
             // Mix Collectors and CompetitivePlayers
-            RandomUtils.random.setSeed(3);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -292,8 +290,6 @@ public final class TestFramework {
         },
         () -> {
             // Groups
-            RandomUtils.random.setSeed(4);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -345,8 +341,6 @@ public final class TestFramework {
         },
         () -> {
             // Preferences: Collectors
-            RandomUtils.random.setSeed(5);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -390,9 +384,11 @@ public final class TestFramework {
 
                 System.out.println("🤝 ---------- Trading ---------- 🤝");
                 printCollectorStatistics(tradingAgents);
+                printCardOwnerStatistics(tradingAgents);
 
                 System.out.println("🏦 -------- Marketplace -------- 🏦");
                 printCollectorStatistics(marketplaceAgents);
+                printCardOwnerStatistics(marketplaceAgents);
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
@@ -400,8 +396,6 @@ public final class TestFramework {
         },
         () -> {
             // Preferences: CompetitivePlayers
-            RandomUtils.random.setSeed(6);
-
             ContainerController main = runtime.createMainContainer(profile);
 
             Marketplace marketplace = new Marketplace();
@@ -445,9 +439,11 @@ public final class TestFramework {
 
                 System.out.println("🤝 ---------- Trading ---------- 🤝");
                 printCompetitivePlayerStatistics(tradingAgents);
+                printCardOwnerStatistics(tradingAgents);
 
                 System.out.println("🏦 -------- Marketplace -------- 🏦");
                 printCompetitivePlayerStatistics(marketplaceAgents);
+                printCardOwnerStatistics(marketplaceAgents);
             }
             catch (StaleProxyException e) {
                 e.printStackTrace();
@@ -466,6 +462,7 @@ public final class TestFramework {
             return;
         }
 
+        RandomUtils.random.setSeed(i);
         System.out.println("Executing test " +
             StringUtils.colorize(String.valueOf(i), StringUtils.CYAN) + "...");
         tests.get(i - 1).run();
