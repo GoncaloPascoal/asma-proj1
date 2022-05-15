@@ -36,6 +36,9 @@ public class Collector extends CardOwner {
 
     // Statistics
     public final Map<CardSource, Integer> sourceMap = new HashMap<>();
+    public double percentageAcquired() {
+        return 100.0 * (1.0 - (double) desiredNotOwned.size() / desiredCards.size());
+    }
 
     @Override
     protected CardSet selectSet() {

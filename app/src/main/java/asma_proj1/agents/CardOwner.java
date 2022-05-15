@@ -307,7 +307,8 @@ public abstract class CardOwner extends BaseAgent {
         List<Card> wanted = new ArrayList<>(wantedCards());
         for (int i = wanted.size() - 1; i >= 0; --i) {
             Card card = wanted.get(i);
-            if (latestSnapshot.containsKey(card) || RandomUtils.randomOutcome(0.15 / Math.exp(0.05 * wanted.size()))) {
+            if ((latestSnapshot.containsKey(card) && latestSnapshot.get(card).count > 0)
+                || RandomUtils.randomOutcome(0.15 / Math.exp(0.05 * wanted.size()))) {
                 int maxPrice = evaluateMaxBuyPrice(card);
                 if (totalPrice + maxPrice <= parameters.marketCapitalLimit * getCapital()) {
                     totalPrice += maxPrice;

@@ -10,11 +10,11 @@ import java.util.Map;
 import asma_proj1.utils.RandomUtils;
 
 public class CardSet implements Serializable {
-    public static final int PACK_PRICE = 500, SET_SIZE = 125;
+    public static final int PACK_PRICE = 500, SET_SIZE = 250;
     private static final Map<Rarity, Integer> RARITY_COUNT = Map.of(
-        Rarity.COMMON, 50,
-        Rarity.UNCOMMON, 40,
-        Rarity.RARE, 35
+        Rarity.COMMON, 100,
+        Rarity.UNCOMMON, 80,
+        Rarity.RARE, 70
     );
 
     private Card[] cards;

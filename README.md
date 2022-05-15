@@ -9,12 +9,19 @@ First project of the **Agents and Multi-Agent Systems** curricular unit.
 
 ### Instructions
 
-**Linux**
+**Linux**  
+To run the default simulation, run the program without arguments.
 ```
 ./gradlew run
+```
+To run a test scenario enter the corresponding number (1-6) as a command-line argument.
+The example shown will run test scenario 3.
+```
+./gradlew run --args 3
 ```
 
 **Windows**
 ```
 gradlew.bat run
+gradlew.bat run --args 3
 ```

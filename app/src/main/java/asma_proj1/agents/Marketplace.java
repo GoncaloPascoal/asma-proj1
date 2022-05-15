@@ -209,7 +209,7 @@ public class Marketplace extends BaseAgent {
     }
 
     private class LogInformation extends TickerBehaviour {
-        private static final int INTERVAL_SECONDS = 30;
+        private static final int INTERVAL_SECONDS = 120;
 
         public LogInformation(Marketplace marketplace) {
             super(marketplace, INTERVAL_SECONDS * 1000);

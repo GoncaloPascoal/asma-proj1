@@ -42,6 +42,16 @@ public class CompetitivePlayer extends CardOwner {
         return totalPower / CardSet.SET_SIZE;
     }
 
+    public double collectionMinPower() {
+        if (bestCards.isEmpty()) return Double.NaN;
+        return bestCards.first().getPower();
+    }
+
+    public double collectionMaxPower() {
+        if (bestCards.isEmpty()) return Double.NaN;
+        return bestCards.last().getPower();
+    }
+
     /**
      * Returns whether or not a card would increase the power of the player's collection.
      */
