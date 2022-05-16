@@ -20,6 +20,7 @@ import asma_proj1.agents.CardDatabase;
 import asma_proj1.agents.CardOwner;
 import asma_proj1.agents.Collector;
 import asma_proj1.agents.CompetitivePlayer;
+import asma_proj1.utils.LogPriority;
 import asma_proj1.utils.RandomUtils;
 import asma_proj1.utils.StringUtils;
 
@@ -461,34 +462,15 @@ public final class TestFramework {
     }
 
     public static void runDefaultSimulation() {
+        StringUtils.MIN_LOG_PRIORITY = LogPriority.LOW;
         ContainerController main = runtime.createMainContainer(profile);
 
         Marketplace marketplace = new Marketplace();
         CardDatabase database = new CardDatabase();
-        Collector[] ca = new Collector[3];
-        fillArray(ca, () -> {
-            Collector c = new Collector();
-            c.group = "a";
-            return c;
-        });
-        CompetitivePlayer[] pa = new CompetitivePlayer[3];
-        fillArray(pa, () -> {
-            CompetitivePlayer c = new CompetitivePlayer();
-            c.group = "a";
-            return c;
-        });
-        Collector[] cb = new Collector[3];
-        fillArray(cb, () -> {
-            Collector c = new Collector();
-            c.group = "b";
-            return c;
-        });
-        CompetitivePlayer[] pb = new CompetitivePlayer[3];
-        fillArray(pb, () -> {
-            CompetitivePlayer c = new CompetitivePlayer();
-            c.group = "b";
-            return c;
-        });
+        Collector[] ca = new Collector[4];
+        fillArray(ca, () -> new Collector());
+        CompetitivePlayer[] pa = new CompetitivePlayer[4];
+        fillArray(pa, () -> new CompetitivePlayer());
 
         AgentController controller;
         
@@ -496,10 +478,8 @@ public final class TestFramework {
             controller = main.acceptNewAgent("marketplace", marketplace);
             controller.start();
 
-            startAgents(main, ca, "ca");
-            startAgents(main, pa, "pa");
-            startAgents(main, cb, "cb");
-            startAgents(main, pb, "pb");
+            startAgents(main, ca, "c");
+            startAgents(main, pa, "p");
 
             controller = main.acceptNewAgent("db", database);
             controller.start();
